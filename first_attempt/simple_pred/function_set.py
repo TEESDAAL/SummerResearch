@@ -107,7 +107,7 @@ def complex_combine(ps: prediction_pair, left_combiner: binary_function,
 pset.addPrimitive(complex_combine, [PredictionPair, BinaryFunction, BinaryFunction], Prediction, name='complex_combine')
 
 
-pset.addPrimitive(np.std, [Region], float, name='G_Std1')
+pset.addPrimitive(np.std, [Region], float, name='G_std')
 pset.addPrimitive(np.mean, [Region], float, name='mean')
 pset.addPrimitive(np.max, [Region], float, name='max')
 pset.addPrimitive(np.min, [Region], float, name='min')
