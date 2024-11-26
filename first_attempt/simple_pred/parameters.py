@@ -1,6 +1,6 @@
 from make_datasets import x_train
 
-population = 100
+population = 50
 generations = 5
 cxProb = 0.8
 mutProb = 0.19

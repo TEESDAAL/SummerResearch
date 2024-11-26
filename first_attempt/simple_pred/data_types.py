@@ -38,6 +38,7 @@ class UnaryFunction:
 class Scalar:
     pass
 
+type image = np.ndarray
 type region = np.ndarray
 type prediction = tuple[float, float]
 type binary_function = Callable[[float, float], float]

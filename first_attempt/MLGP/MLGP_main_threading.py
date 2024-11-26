@@ -1,20 +1,20 @@
 #python packages
-import math
-import random
+import random, pickle
 import time
 import numpy as np
+import eval_gp
 # deap package
-from deap import tools, algorithms# fitness function
-# from fitnessEvaluation import evaluate, test
-from make_datasets import x_test, y_test
-from parameters import  population, cxProb, mutProb, generations
+from deap import tools, algorithms
+from display_statistics import plot
+from parameters import  population, cxProb, mutProb, elitismProb, generations
 from toolbox import toolbox
+import multiprocessing
+from scoop import futures
+from random_seed import seed
 
-randomSeeds = 12
 
-
-def main(randomSeeds):
-    random.seed(randomSeeds)
+def main(seed, write_to_file=False, display=False):
+    random.seed(seed)
     pop = toolbox.population(population)
     hof = tools.HallOfFame(1)
     log = tools.Logbook()
@@ -26,21 +26,32 @@ def main(randomSeeds):
     mstats.register("min", np.min)
     mstats.register("max", np.max)
     log.header = ["gen", "evals"] + mstats.fields
+    pop, log, hof2 =  eval_gp.eaSimple(pop, toolbox, cxProb, mutProb, elitismProb, generations, stats=mstats, halloffame=hof, verbose=True)
+    #pop, log = algorithms.eaSimple(pop, toolbox, cxProb, mutProb, generations, stats=mstats, halloffame=hof, verbose=True)
 
-    #pop, log, hof2 =  evalGP.eaSimple(pop, toolbox, cxProb, mutProb, elitismProb, generations, stats=mstats, halloffame=hof, verbose=True)
-    pop, log = algorithms.eaSimple(pop, toolbox, cxProb, mutProb, generations, stats=mstats, halloffame=hof, verbose=True)
-    return pop, log, hof
+
+    if write_to_file:
+        pickle.dump(log, open(f"data/{seed}.pkl", "wb"))
+
+    if display:
+        plot(log)
+
+
+    return pop, log, hof, hof2
 
 
 
 
 if __name__ == "__main__":
+    pool = multiprocessing.Pool()
+    toolbox.register("map", pool.map)
+    #toolbox.register("map", futures.map)
     beginTime = time.process_time()
-    pop, log, hof = main(randomSeeds)
+    pop, log, hof, hof2 = main(seed(), write_to_file=True, display=True)
     endTime = time.process_time()
     trainTime = endTime - beginTime
 
-    testResults = toolbox.test(hof[0])
+    testResults = toolbox.test(hof2[0])
     testTime = time.process_time() - endTime
 
     print('Best individual ', hof[0])

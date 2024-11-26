@@ -43,16 +43,6 @@ toolbox.register("evaluate", evaluate, compiler=toolbox.compile, x_train=x_train
 toolbox.register("validation", evaluate, compiler=toolbox.compile, x_train=x_validation, y_train=y_validation)
 toolbox.register("test", evaluate, compiler=toolbox.compile, x_train=x_test, y_train=y_test)
 
-# def evaluate(individual: gp.PrimitiveTree, x_train: np.ndarray, y_train: np.ndarray) -> tuple[float]:
-#     model = toolbox.compile(individual)
-#
-#     square_errors = [(model(img) - float(val))**2 for img, (val, arousal) in zip(x_train, y_train)]
-#     return math.sqrt(sum(square_errors) / len(square_errors)),
-#
-#
-# toolbox.register("evaluate", evaluate, x_train=x_train, y_train=y_train)
-# toolbox.register("validation", evaluate, x_train=x_validation, y_train=y_validation)
-# toolbox.register("test", evaluate, x_train=x_test, y_train=y_test)
 
 
 # toolbox.register("select", tools.selTournament, tournsize=7)
