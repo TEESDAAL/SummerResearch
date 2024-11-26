@@ -1,7 +1,9 @@
 train_set/
 val_set/
+test_set/
 
 **/.venv/
 **/.idea/
 **/.pytest_cache/
 **/.__pycache__/
+**/__pycache__/
