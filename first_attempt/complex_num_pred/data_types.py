@@ -35,14 +35,7 @@ class PredictionPair:
 class UnaryFunction:
     pass
 
-class Scalar:
-    pass
-
 type image = np.ndarray
 type region = np.ndarray
 type prediction = complex
-type binary_function = Callable[[float, float], float]
-type prediction_pair = tuple[prediction, prediction]
-type unary_function = Callable[[float], float]
-type scalar = float
 

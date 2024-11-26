@@ -1,10 +1,13 @@
 from typing import Callable
 import numpy as np
-from data_types import image, prediction
 from make_datasets import x_train, y_train, x_test, y_test
 import random
 from itertools import product
 random.seed(0)
+
+type prediction = tuple[float, float]
+type image = np.ndarray
+
 def squared_distance(t1: prediction, t2: prediction) -> float:
     return (float(t1[0]) - float(t2[0]))**2 + (float(t1[1]) - float(t2[1]))**2
 

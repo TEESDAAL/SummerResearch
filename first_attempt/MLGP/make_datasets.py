@@ -18,8 +18,8 @@ def img_from_num(number) -> np.ndarray:
 
 def arousal_valence_from_number(number) -> tuple[float, float]:
     return (
-        np.load(f"{BASE_PATH}/annotations/{number}_aro.npy"),
-        np.load(f"{BASE_PATH}/annotations/{number}_val.npy")
+        float(np.load(f"{BASE_PATH}/annotations/{number}_aro.npy")),
+        float(np.load(f"{BASE_PATH}/annotations/{number}_val.npy"))
     )
 
 

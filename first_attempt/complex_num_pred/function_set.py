@@ -1,4 +1,3 @@
-import operator
 from functools import partial
 import numpy as np
 from deap import gp
