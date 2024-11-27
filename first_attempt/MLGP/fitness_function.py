@@ -7,14 +7,14 @@ from typing import Callable
 def evaluate_valence(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree], Callable], x_train: np.ndarray, y_train: np.ndarray) -> tuple[float]:
     model = compiler(individual)
 
-    square_errors = [(model(img) - float(val))**2 for img, (val, _) in zip(x_train, y_train)]
+    square_errors = [(model(img) - float(val))**2 for img, (_, val) in zip(x_train, y_train)]
     return math.sqrt(sum(square_errors) / len(square_errors)),
 
 
 def evaluate_arousal(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree], Callable], x_train: np.ndarray, y_train: np.ndarray) -> tuple[float]:
     model = compiler(individual)
 
-    square_errors = [(model(img) - float(aro))**2 for img, (_, aro) in zip(x_train, y_train)]
+    square_errors = [(model(img) - float(aro))**2 for img, (aro, _) in zip(x_train, y_train)]
     return math.sqrt(sum(square_errors) / len(square_errors)),
 
 

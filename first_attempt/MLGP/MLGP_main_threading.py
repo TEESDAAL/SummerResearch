@@ -56,9 +56,9 @@ def main(seed, write_to_file=False, display=False, train_for_arousal=True):
 
 
 if __name__ == "__main__":
-    #pool = multiprocessing.Pool()
-    #toolbox.register("map", pool.map)
-    toolbox.register("map", futures.map)
+    pool = multiprocessing.Pool()
+    toolbox.register("map", pool.map)
+    #toolbox.register("map", futures.map)
 
 
     models = []

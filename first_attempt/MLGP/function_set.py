@@ -70,7 +70,11 @@ def regionR(left, x, y, windowSize1,windowSize2):
 
 pset = gp.PrimitiveSetTyped('MAIN', [Img], Double)
 
-pset.addPrimitive(np.std, [Region], Double, name='G_Std1')
+pset.addPrimitive(np.std, [Region], Double, name='std')
+pset.addPrimitive(np.mean, [Region], Double, name='mean')
+pset.addPrimitive(np.min, [Region], Double, name='min')
+pset.addPrimitive(np.max, [Region], Double, name='max')
+
 pset.addPrimitive(hist_equal, [Region], Region, name='Hist_Eq')
 pset.addPrimitive(gaussian_1, [Region], Region, name='Gau1')
 pset.addPrimitive(gaussian_11, [Region], Region, name='Gau11')
