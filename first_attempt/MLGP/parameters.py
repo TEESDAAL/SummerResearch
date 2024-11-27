@@ -1,7 +1,7 @@
 from make_datasets import x_train
 
 population = 100
-generations = 2
+generations = 5
 cxProb = 0.8
 mutProb = 0.19
 elitismProb = 0.01

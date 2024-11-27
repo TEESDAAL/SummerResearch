@@ -1,3 +1,5 @@
+import numpy as np
+
 class Img:
     pass
 
@@ -15,3 +17,5 @@ class Region:
 
 class Double:
     pass
+
+type image = np.ndarray

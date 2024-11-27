@@ -11,10 +11,23 @@ from toolbox import toolbox
 import multiprocessing
 from scoop import futures
 from random_seed import seed
+import fitness_function
+from make_datasets import x_train, y_train, x_test, y_test, x_validation, y_validation
 
 
-def main(seed, write_to_file=False, display=False):
+def main(seed, write_to_file=False, display=False, train_for_arousal=True):
     random.seed(seed)
+    np.random.seed(seed)
+
+
+
+    evaluation_function = fitness_function.evaluate_arousal if train_for_arousal else fitness_function.evaluate_valence
+
+    toolbox.register("evaluate", evaluation_function, compiler=toolbox.compile, x_train=x_train, y_train=y_train)
+    toolbox.register("validation", evaluation_function, compiler=toolbox.compile, x_train=x_validation, y_train=y_validation)
+    toolbox.register("test", evaluation_function, compiler=toolbox.compile, x_train=x_test, y_train=y_test)
+
+
     pop = toolbox.population(population)
     hof = tools.HallOfFame(1)
     log = tools.Logbook()
@@ -31,7 +44,7 @@ def main(seed, write_to_file=False, display=False):
 
 
     if write_to_file:
-        pickle.dump(log, open(f"data/{seed}.pkl", "wb"))
+        pickle.dump(log, open(f"data/{seed}{['v', 'a'][train_for_arousal]}.pkl", "wb"))
 
     if display:
         plot(log)
@@ -43,19 +56,27 @@ def main(seed, write_to_file=False, display=False):
 
 
 if __name__ == "__main__":
-    pool = multiprocessing.Pool()
-    toolbox.register("map", pool.map)
-    #toolbox.register("map", futures.map)
-    beginTime = time.process_time()
-    pop, log, hof, hof2 = main(seed(), write_to_file=True, display=True)
-    endTime = time.process_time()
-    trainTime = endTime - beginTime
+    #pool = multiprocessing.Pool()
+    #toolbox.register("map", pool.map)
+    toolbox.register("map", futures.map)
 
-    testResults = toolbox.test(hof2[0])
-    testTime = time.process_time() - endTime
 
-    print('Best individual ', hof[0])
-    print('Test results  ', testResults)
-    print('Train time  ', trainTime)
-    print('Test time  ', testTime)
-    print('End')
+    models = []
+    for with_arousal in [True, False]:
+        beginTime = time.process_time()
+        pop, log, hof, hof2 = main(seed(), write_to_file=True, display=False, train_for_arousal=with_arousal)
+        endTime = time.process_time()
+        trainTime = endTime - beginTime
+
+        testResults = toolbox.test(hof2[0])
+        testTime = time.process_time() - endTime
+
+        print('Best individual ', hof[0])
+        print('Test results  ', testResults)
+        print('Train time  ', trainTime)
+        print('Test time  ', testTime)
+        print('End')
+
+        models.append(toolbox.compile(hof2[0]))
+
+    print(f"Combined fitness: {fitness_function.evaluate(lambda img: (models[0](img), models[1](img)), x_test, y_test)}")

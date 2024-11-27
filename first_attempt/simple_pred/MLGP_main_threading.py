@@ -43,9 +43,9 @@ def main(seed, write_to_file=False, display=False):
 
 
 if __name__ == "__main__":
-    pool = multiprocessing.Pool()
-    toolbox.register("map", pool.map)
-    #toolbox.register("map", futures.map)
+    #pool = multiprocessing.Pool()
+    #toolbox.register("map", pool.map)
+    toolbox.register("map", futures.map)
     beginTime = time.process_time()
     pop, log, hof, hof2 = main(seed(), write_to_file=True, display=True)
     endTime = time.process_time()

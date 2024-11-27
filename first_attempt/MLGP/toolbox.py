@@ -1,15 +1,11 @@
-
-from collections.abc import Callable
 from deap import base, creator, gp
 from deap import tools
 import gp_restrict
 from function_set import pset
 from parameters import initialMaxDepth, initialMinDepth, maxDepth
-import numpy as np
-import math
-from make_datasets import x_train, y_train, x_validation, y_validation, x_test, y_test
 import operator
 from scoop import futures
+
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -22,27 +18,7 @@ toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.ex
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register("compile", gp.compile, pset=pset)
 
-def evaluate(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree], Callable], x_train: np.ndarray, y_train: np.ndarray) -> tuple[float]:
-    model = compiler(individual)
-
-    square_errors = [(model(img) - float(val))**2 for img, (val, arousal) in zip(x_train, y_train)]
-    return math.sqrt(sum(square_errors) / len(square_errors)),
-
-
-toolbox.register("evaluate", evaluate, compiler=toolbox.compile, x_train=x_train, y_train=y_train)
-toolbox.register("validation", evaluate, compiler=toolbox.compile, x_train=x_validation, y_train=y_validation)
-toolbox.register("test", evaluate, compiler=toolbox.compile, x_train=x_test, y_train=y_test)
-
-# def evaluate(individual: gp.PrimitiveTree, x_train: np.ndarray, y_train: np.ndarray) -> tuple[float]:
-#     model = toolbox.compile(individual)
-#
-#     square_errors = [(model(img) - float(val))**2 for img, (val, arousal) in zip(x_train, y_train)]
-#     return math.sqrt(sum(square_errors) / len(square_errors)),
-#
-#
-# toolbox.register("evaluate", evaluate, x_train=x_train, y_train=y_train)
-# toolbox.register("validation", evaluate, x_train=x_validation, y_train=y_validation)
-# toolbox.register("test", evaluate, x_train=x_test, y_train=y_test)
+# toolbox.eval_function is defined at runtime in the main file
 
 
 # toolbox.register("select", tools.selTournament, tournsize=7)
