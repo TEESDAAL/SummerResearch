@@ -6,7 +6,10 @@ Running the models is now done through `model_selector.py`. You can run a specif
 ```python -m scoop model_seletor.py MODEL [parameters]```
 or without scoop via ```python model_seletor.py MODEL [parameters] --no-scoop```
 or without any threading by running ```python -m scoop MODEL [parameters] --no-scoop```
+
+
 For more details you can run `python model_selector --help`
+
 Eg:
 `python model_selector.py complex_pred -g 2 -p 10` - Run the complex_pred model, trained for 2 generatiosn with a population size of 10.
 ## Explanation of the models
