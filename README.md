@@ -10,8 +10,10 @@ or without any threading by running ```python -m scoop MODEL [parameters] --no-s
 
 For more details you can run `python model_selector --help`
 
+## Example
 Eg:
-`python model_selector.py complex_pred -g 2 -p 10` - Run the complex_pred model, trained for 2 generatiosn with a population size of 10.
+
+`python model_selector.py complex_pred -g 2 -p 10` - Run the complex_pred model, trained for 2 generations with a population size of 10.
 ## Explanation of the models
 ### "Seperate" MLGP Model
 Run via `python -m scoop model_selector.py MLGP`
