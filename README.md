@@ -2,7 +2,7 @@
 This is a repository for all my summer research related things.
 
 ## Running the models
-Running the models is now done through `model_selector.py`. You can run a specific model in the following ways:
+Running the models is now done through `model_selector.py` in the `refactor` directory. You can run a specific model in the following ways:
 1. ```python -m scoop model_seletor.py MODEL [parameters]``` - Run the model using scoop for parallelism.
 2. ```python model_seletor.py MODEL [parameters] --no-scoop``` - Run the model using the regular multithreading library for parrallelism.
 3. ```python model_seletor.py MODEL [parameters]``` -  Run the model without any parrallelism
