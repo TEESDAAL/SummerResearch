@@ -2,10 +2,10 @@
 This is a repository for all my summer research related things.
 
 ## Running the models
-Running the models is now done through `model_selector.py`. You can run a specific model via
-```python -m scoop model_seletor.py MODEL [parameters]```
-or without scoop via ```python model_seletor.py MODEL [parameters] --no-scoop```
-or without any threading by running ```python -m scoop MODEL [parameters] --no-scoop```
+Running the models is now done through `model_selector.py`. You can run a specific model in the following ways:
+1. ```python -m scoop model_seletor.py MODEL [parameters]``` - Run the model using scoop for parallelism.
+2. ```python model_seletor.py MODEL [parameters] --no-scoop``` - Run the model using the regular multithreading library for parrallelism.
+3. ```python model_seletor.py MODEL [parameters]``` -  Run the model without any parrallelism
 
 
 For more details you can run `python model_selector --help`
