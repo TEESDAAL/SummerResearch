@@ -18,4 +18,4 @@ class Region:
 class Double:
     pass
 
-type image = np.ndarray
+image = np.ndarray
