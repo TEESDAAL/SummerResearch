@@ -35,7 +35,7 @@ class PredictionPair:
 class UnaryFunction:
     pass
 
-type image = np.ndarray
-type region = np.ndarray
-type prediction = complex
+image = np.ndarray
+region = np.ndarray
+prediction = complex
 
