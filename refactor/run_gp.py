@@ -107,7 +107,7 @@ def MLGP_main(parameters):
 
     toolbox = create_toolbox(datasets, pset, parameters)
 
-    update_evalutation_function(toolbox, MLGP.fitness_function.evaluate_arousal, datasets)
+    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_arousal, datasets)
 
     pset = MLGP_function_set.create_pset(image_width, image_height)
 
