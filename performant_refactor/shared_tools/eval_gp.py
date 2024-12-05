@@ -114,7 +114,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
     #print(len(invalid_ind))
 
     def evaluate_individual(individual) -> tuple[float]:
-        e = partial(error, individual=individual, compiler=toolbox.compile)
+        e = partial(toolbox.error, individual=individual)
 
         errors = list(toolbox.map(
             e,
@@ -160,7 +160,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
 
-        fitnesses = [evaluate_individual(p) for p in population]
+        fitnesses = [evaluate_individual(p) for p in invalid_ind]
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
 
