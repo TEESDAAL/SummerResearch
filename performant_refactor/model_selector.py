@@ -28,7 +28,7 @@ if __name__ == "__main__":
     random.seed(parameters.seed)
     np.random.seed(parameters.seed)
     print(parameters)
-    if params.model == "MLGP":
+    if parameters.model == "MLGP":
         MLGP_main(parameters)
     else:
         main(parameters)
