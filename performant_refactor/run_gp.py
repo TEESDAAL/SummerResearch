@@ -7,7 +7,7 @@ import complex_num_pred.function_set as c_num_set
 import shared_tools.eval_gp as eval_gp
 import simple_pred.function_set as simple_fs, MLGP.function_set as mlgp_set
 from shared_tools.toolbox import create_toolbox, update_evalutation_function
-from complex_num_pred.fitness_function import evaluate as complex_num_evaluate
+from complex_num_pred.fitness_function import evaluate as complex_num_evaluate, error as complex_error
 from MLGP import fitness_function as MLGP_fitness_function, function_set as MLGP_function_set
 from complex_pred import function_set as complex_set
 
@@ -58,7 +58,7 @@ def main(parameters, **kwargs) -> gp.PrimitiveTree:
     toolbox = create_toolbox(datasets, pset, parameters, **kwargs)
 
     if parameters.model == "complex_num_pred":
-        update_evalutation_function(toolbox, complex_num_evaluate, datasets)
+        update_evalutation_function(toolbox, complex_num_evaluate, complex_error, datasets)
 
     return record_run(parameters, toolbox, **kwargs)
 

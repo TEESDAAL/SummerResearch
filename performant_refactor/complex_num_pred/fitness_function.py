@@ -18,3 +18,7 @@ def evaluate(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree]
     ]
 
     return sum(square_errors) / len(square_errors),
+
+def error(x_y: tuple[np.ndarray, tuple[float, float]], individual, compiler: Callable[[gp.PrimitiveTree], Callable]):
+    model = compiler(individual)
+    return squared_distance(model(x_y[0]), x_y[1])
