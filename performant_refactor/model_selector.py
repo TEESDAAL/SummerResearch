@@ -1,4 +1,4 @@
-import argparse
+import argparse, random, numpy as np
 from run_gp import main, MLGP_main
 import shared_tools.parameters as params
 
@@ -24,10 +24,12 @@ parser.add_argument('--no-scoop', action='store_true', help="a keyword argument 
 
 
 if __name__ == "__main__":
-    params = parser.parse_args()
-    print(params)
+    parameters = parser.parse_args()
+    random.seed(parameters.seed)
+    np.random.seed(parameters.seed)
+    print(parameters)
     if params.model == "MLGP":
-        MLGP_main(params)
+        MLGP_main(parameters)
     else:
-        main(params)
+        main(parameters)
 

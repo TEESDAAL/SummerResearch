@@ -3,7 +3,7 @@ import sys
 import warnings
 from inspect import isclass
 
-MAX_SIZE = 30
+MAX_SIZE = 40
 
 
 # Define the name of type for any types.

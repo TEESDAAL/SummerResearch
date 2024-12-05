@@ -24,9 +24,6 @@ def get_pset(model):
 
 
 def run_gp(parameters, toolbox):
-    random.seed(parameters.seed)
-    np.random.seed(parameters.seed)
-
     pop = toolbox.population(parameters.population)
     #toolbox.evaluate(pop)
     hof = tools.HallOfFame(1)

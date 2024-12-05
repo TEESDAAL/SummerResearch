@@ -8,8 +8,7 @@ from PIL import Image
 import os
 import numpy as np
 import functools
-random.seed(0)
-np.random.seed(0)
+
 
 BASE_PATH = "../train_set"
 
@@ -59,6 +58,8 @@ def make_datasets() -> None:
 
 
 if __name__ == "__main__":
+    random.seed(0)
+    np.random.seed(0)
     make_datasets()
 
 

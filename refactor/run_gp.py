@@ -1,8 +1,6 @@
-import random, time, pickle, numpy as np
-from shared_tools import toolbox
-from shared_tools.fitness_function import evaluate
+import time, pickle, numpy as np
 from shared_tools.make_datasets import x_train, y_train, x_validation, y_validation, x_test, y_test
-from deap import algorithms, gp, tools
+from deap import gp, tools
 import complex_num_pred.function_set as c_num_set
 import shared_tools.eval_gp as eval_gp
 import simple_pred.function_set as simple_fs, MLGP.function_set as mlgp_set
@@ -24,11 +22,10 @@ def get_pset(model):
 
 
 def run_gp(parameters, toolbox):
-    random.seed(parameters.seed)
-    np.random.seed(parameters.seed)
-
+    print("Creating population")
     pop = toolbox.population(parameters.population)
-    #toolbox.evaluate(pop)
+    print("Finished creating population")
+
     hof = tools.HallOfFame(1)
     log = tools.Logbook()
     stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values)
@@ -88,6 +85,7 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
         filepath = f"{parameters.model}/data"
         pickle.dump(log, open(f"{filepath}/{parameters.seed}-{prefix}log.pkl", 'wb'))
         pickle.dump(best_individual, open(f"{filepath}/{parameters.seed}-{prefix}best.pkl", 'wb'))
+        pickle.dump(trainTime, open(f"{filepath}/{parameters.seed}-{prefix}train-time.pkl", 'wb'))
 
     return hof[0]
 
