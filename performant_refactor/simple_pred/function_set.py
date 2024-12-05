@@ -87,12 +87,6 @@ def combine(a: float, b: float) -> prediction:
     return a, b
 
 
-def safe_div(a: float, b: float) -> float:
-    if b == 0:
-        return 1
-
-    return a / b
-
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset = gp.PrimitiveSetTyped('MAIN', [Img], Prediction)
     pset.addPrimitive(combine, [float, float], Prediction, name="combine")
@@ -101,7 +95,7 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     for func in feature_construction_layer:
         pset.addPrimitive(func, [Region], float, name=func.__name__)
 
-    binary_operators = [operator.add, operator.sub, operator.mul, safe_div]
+    binary_operators = [operator.add, operator.sub]
 
     for func in binary_operators:
         pset.addPrimitive(func, [float, float], float)
