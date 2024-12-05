@@ -11,11 +11,22 @@ def evaluate_valence(individual: gp.PrimitiveTree, compiler: Callable[[gp.Primit
     return math.sqrt(sum(square_errors) / len(square_errors)),
 
 
+def valence_error(x_y: tuple[np.ndarray, tuple[float, float]], individual, compiler: Callable[[gp.PrimitiveTree], Callable]):
+    model = compiler(individual)
+    return (model(x_y[0]) - x_y[1][1])**2
+
+
+
 def evaluate_arousal(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree], Callable], x_train: np.ndarray, y_train: np.ndarray) -> tuple[float]:
     model = compiler(individual)
 
     square_errors = [(model(img) - float(aro))**2 for img, (aro, _) in zip(x_train, y_train)]
     return math.sqrt(sum(square_errors) / len(square_errors)),
+
+
+def arousal_error(x_y: tuple[np.ndarray, tuple[float, float]], individual, compiler: Callable[[gp.PrimitiveTree], Callable]):
+    model = compiler(individual)
+    return (model(x_y[0]) - x_y[1][0])**2
 
 
 def evaluate(model: Callable[[image], tuple[float, float]], x_train: np.ndarray, y_train: np.ndarray) -> tuple[float]:

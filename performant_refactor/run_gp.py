@@ -104,7 +104,7 @@ def MLGP_main(parameters):
 
     toolbox = create_toolbox(datasets, pset, parameters)
 
-    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_arousal, error, datasets)
+    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_arousal, MLGP_fitness_function.arousal_error, datasets)
 
     pset = MLGP_function_set.create_pset(image_width, image_height)
 
@@ -113,7 +113,7 @@ def MLGP_main(parameters):
         pset=pset
     )
 
-    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_valence, error, datasets)
+    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_valence, MLGP_fitness_function.valence_error, datasets)
 
     valence_predictor = gp.compile(
         record_run(parameters, toolbox, prefix="v"),
