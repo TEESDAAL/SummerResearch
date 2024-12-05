@@ -36,5 +36,8 @@ else
 fi
 
 model=$1
+homeDir = '/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/performant_refactor'
+
+cd $homeDir
 
 python model_selector.py $model -s $SGE_TASK_ID -p 10 -g 2
