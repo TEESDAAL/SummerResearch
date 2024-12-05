@@ -8,6 +8,12 @@
 #
 #$ -wd /vol/grid-solar/sgeusers/teesdaalan 
 #
+#
+# Mail me at the b(eginning) and e(nd) of the job
+#
+#$ -M teesdaalan@myvuw.ac.nz
+#$ -m be
+#
 # End of the setup directives
 #
 # Now let's do something useful, but first change into the job-specific

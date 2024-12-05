@@ -6,7 +6,6 @@ from scoop import futures
 import multiprocessing
 from shared_tools.fitness_function import evaluate
 
-
 def create_toolbox(
     data_sets: dict[str, tuple[np.ndarray, np.ndarray]], pset: gp.PrimitiveSetTyped,
     parameters, evaluation_function=evaluate) -> base.Toolbox:

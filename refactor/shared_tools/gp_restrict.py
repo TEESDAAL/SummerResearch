@@ -3,6 +3,8 @@ import sys
 import warnings
 from inspect import isclass
 
+MAX_SIZE = 30
+
 
 # Define the name of type for any types.
 __type__ = object
@@ -185,7 +187,7 @@ def generate(pset, min_, max_, condition, type_=__type__):
 def genHalfAndHalfMD(pset, min_, max_, type_=None):
     expr=genHalfAndHalf(pset, min_, max_, type_=None)
     #print('expr before', len(expr))
-    while len(expr)>80:
+    while len(expr)>MAX_SIZE:
         expr=genHalfAndHalf(pset, min_, max_, type_=None)
         #print('expr before', len(expr))
     #print('expr after',len(expr))
@@ -194,7 +196,7 @@ def genHalfAndHalfMD(pset, min_, max_, type_=None):
 def genFullMD(pset, min_, max_, type_=None):
     expr=genFull(pset, min_, max_, type_=None)
     #print('expr before', len(expr))
-    while len(expr)>80:
+    while len(expr)>MAX_SIZE:
         expr=genFull(pset, min_, max_, type_=None)
         #print('expr before', len(expr))
     #print('expr after',len(expr))
