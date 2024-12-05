@@ -85,6 +85,8 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
         filepath = f"{parameters.model}/data"
         pickle.dump(log, open(f"{filepath}/{parameters.seed}-{prefix}log.pkl", 'wb'))
         pickle.dump(best_individual, open(f"{filepath}/{parameters.seed}-{prefix}best.pkl", 'wb'))
+        pickle.dump(trainTime, open(f"{filepath}/{parameters.seed}-{prefix}trainTime.pkl", 'wb'))
+
 
     return hof[0]
 
