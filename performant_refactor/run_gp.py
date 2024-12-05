@@ -1,6 +1,6 @@
 import random, time, pickle, numpy as np
 from shared_tools import toolbox
-from shared_tools.fitness_function import evaluate
+from shared_tools.fitness_function import error
 from shared_tools.make_datasets import x_train, y_train, x_validation, y_validation, x_test, y_test
 from deap import algorithms, gp, tools
 import complex_num_pred.function_set as c_num_set
@@ -104,7 +104,7 @@ def MLGP_main(parameters):
 
     toolbox = create_toolbox(datasets, pset, parameters)
 
-    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_arousal, datasets)
+    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_arousal, error, datasets)
 
     pset = MLGP_function_set.create_pset(image_width, image_height)
 
@@ -113,7 +113,7 @@ def MLGP_main(parameters):
         pset=pset
     )
 
-    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_valence, datasets)
+    update_evalutation_function(toolbox, MLGP_fitness_function.evaluate_valence, error, datasets)
 
     valence_predictor = gp.compile(
         record_run(parameters, toolbox, prefix="v"),
