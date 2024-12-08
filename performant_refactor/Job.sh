@@ -9,11 +9,6 @@
 #$ -wd /vol/grid-solar/sgeusers/teesdaalan 
 #
 #
-# Mail me at the b(eginning) and e(nd) of the job
-#
-#$ -M teesdaalan@myvuw.ac.nz
-#$ -m be
-#
 # End of the setup directives
 #
 # Now let's do something useful, but first change into the job-specific
@@ -21,8 +16,8 @@
 #
 # Check we have somewhere to work now and if we don't, exit nicely.
 #
-if [ -d /local/tmp/teesdaalan/$JOB_ID ]; then
-        cd /local/tmp/teesdaalan/$JOB_ID
+if [ -d /local/tmp/teesdaalan/$JOB_ID.$SGE_TASK_ID ]; then
+        cd /local/tmp/teesdaalan/$JOB_ID.$SGE_TASK_ID
 else
         echo "Uh oh ! There's no job directory to change into "
         echo "Something is broken. I should inform the programmers"
@@ -36,8 +31,8 @@ else
 fi
 
 model=$1
-homeDir = '/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/performant_refactor'
+homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/performant_refactor'
 
 cd $homeDir
 
-python -m scoop model_selector.py $model -s $SGE_TASK_ID -p 10 -g 2
+python model_selector.py $model -s $SGE_TASK_ID -p 100 -g 100 --no-scoop

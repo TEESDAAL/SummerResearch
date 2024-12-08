@@ -1,9 +1,8 @@
 from deap import base, creator, gp
 from deap import tools
 import shared_tools.gp_restrict as gp_restrict
-import numpy as np
+import numpy as np, operator, multiprocessing
 from scoop import futures
-import multiprocessing
 from shared_tools.fitness_function import evaluate, error
 
 def create_toolbox(
@@ -42,6 +41,13 @@ def create_toolbox(
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mut", gp_restrict.genFull, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
+    
+    # TODO CHECK THIS DOESN'T BREAK ANYTHING
+    toolbox.decorate("expr", gp.staticLimit(key=operator.attrgetter("height"), max_value=30))
+    toolbox.decorate("expr_mut", gp.staticLimit(key=operator.attrgetter("height"), max_value=80))
+
+    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=80))
+    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=80))
 
     return toolbox
 

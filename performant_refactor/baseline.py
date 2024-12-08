@@ -4,8 +4,8 @@ from shared_tools.make_datasets import y_train, x_test, y_test
 import random
 random.seed(0)
 
-type prediction = tuple[float, float]
-type image = np.ndarray
+prediction = tuple[float, float]
+image = np.ndarray
 
 def squared_distance(t1: prediction, t2: prediction) -> float:
     return (t1[0] - t2[0])**2 + (t1[1] - t2[1])**2
