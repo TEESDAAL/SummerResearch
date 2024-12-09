@@ -11,6 +11,7 @@ MODELS = ('complex_num_pred', 'complex_pred', 'simple_pred')
 from matplotlib import pyplot as plt
 def main(pool):
     plt.boxplot([obtain_all_results(model, pool) for model in MODELS])
+    plt.show()
 
 
 def models(dir_path: str) -> list[gp.PrimitiveTree]:
