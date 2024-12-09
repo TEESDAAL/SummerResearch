@@ -13,7 +13,8 @@ def main(pool):
 
 
 def models(dir_path: str) -> list[gp.PrimitiveTree]:
-    return [pickle.load(open(file, 'rb')) for file in os.listdir(f"{dir_path}/data") if 'best' in file]
+    path = f"{dir_path}/data"
+    return [pickle.load(open(f"{path}/{file}", 'rb')) for file in os.listdir(path) if 'best' in file]
 
 
 
