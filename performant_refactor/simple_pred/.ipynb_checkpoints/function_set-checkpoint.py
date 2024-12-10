@@ -1,7 +1,7 @@
 from functools import partial
 import numpy as np
 from deap import gp
-from complex_num_pred.data_types import (Img, X, Y, Size,
+from simple_pred.data_types import (Img, X, Y, Size,
                         Region, region, Prediction, prediction,
                         )  # defined by author
 
@@ -9,8 +9,8 @@ from scipy import ndimage
 from skimage.feature import local_binary_pattern
 from skimage.exposure import equalize_hist
 from skimage.feature import hog
-import math
 import random
+import operator
 
 
 def gaussian_1(img_region: region) -> region:
@@ -63,7 +63,7 @@ def hist_equal(img_region: region) -> region:
 
 
 def hog_feature(img_region: region) -> region:
-    img, realImage = hog(img_region, orientations=9, pixels_per_cell=(8, 8),
+    _, realImage = hog(img_region, orientations=9, pixels_per_cell=(8, 8),
                          cells_per_block=(3, 3), block_norm='L2-Hys', visualize=True,
                          transform_sqrt=False, feature_vector=True)
     return realImage
@@ -77,36 +77,28 @@ def square_region(img_region: region, x: int, y: int, window_size: int) -> regio
 
 
 def rect_region(img_region: region, x: int, y: int, width: int, height: int) -> region:
-    w, h = img_region.shape
-    x_end = min(w, x + width)
-    y_end = min(h, y + height)
+    width, height = img_region.shape
+    x_end = min(width, x + width)
+    y_end = min(height, y + height)
     return img_region[x:x_end, y:y_end]
 
 
 def combine(a: float, b: float) -> prediction:
-    return complex(a, b)
+    return a, b
 
 
-def gen_rotator() -> complex:
-        theta = random.random() * 2*math.pi
-        return complex(math.cos(theta), math.sin(theta))
-
-
-def gen_scalar() -> complex:
-    return complex(6*(random.random() - 0.5), 0)
-
-
-def transform(value: complex, scalar: complex) -> complex:
-        return value * scalar
-
-
-def create_pset(image_width, image_height) -> gp.PrimitiveSetTyped:
+def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset = gp.PrimitiveSetTyped('MAIN', [Img], Prediction)
     pset.addPrimitive(combine, [float, float], Prediction, name="combine")
 
     feature_construction_layer = [np.std, np.mean, np.min, np.max]
     for func in feature_construction_layer:
         pset.addPrimitive(func, [Region], float, name=func.__name__)
+
+    binary_operators = [operator.add, operator.sub]
+
+    for func in binary_operators:
+        pset.addPrimitive(func, [float, float], float)
 
     image_processing_layer = [
         (hist_equal, 'Hist_Eq'), (gaussian_1, 'Gau1'), (gaussian_11, 'Gau11'),
@@ -124,12 +116,6 @@ def create_pset(image_width, image_height) -> gp.PrimitiveSetTyped:
     pset.addPrimitive(square_region, [Img, X, Y, Size], Region, name='Region_S')
     pset.addPrimitive(rect_region, [Img, X, Y, Size, Size], Region, name='Region_R')
 
-
-    pset.addPrimitive(transform, [Prediction, Prediction], Prediction, name="transform")
-
-
-    pset.addEphemeralConstant('scale', gen_scalar, Prediction)
-    pset.addEphemeralConstant('rotate', gen_rotator, Prediction)
 
     pset.addEphemeralConstant('X', partial(random.randint, 0, image_width - 24), X)
     pset.addEphemeralConstant('Y', partial(random.randint, 0, image_height - 24), Y)

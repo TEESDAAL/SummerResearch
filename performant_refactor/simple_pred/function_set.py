@@ -77,9 +77,9 @@ def square_region(img_region: region, x: int, y: int, window_size: int) -> regio
 
 
 def rect_region(img_region: region, x: int, y: int, width: int, height: int) -> region:
-    width, height = img_region.shape
-    x_end = min(width, x + width)
-    y_end = min(height, y + height)
+    w, h = img_region.shape
+    x_end = min(w, x + width)
+    y_end = min(h, y + height)
     return img_region[x:x_end, y:y_end]
 
 
