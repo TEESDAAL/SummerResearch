@@ -63,10 +63,9 @@ def hist_equal(img_region: region) -> region:
 
 
 def hog_feature(img_region: region) -> region:
-    _, realImage = hog(img_region, orientations=9, pixels_per_cell=(8, 8),
-                         cells_per_block=(3, 3), block_norm='L2-Hys', visualize=True,
+    return hog(img_region, orientations=9, pixels_per_cell=(8, 8),
+                         cells_per_block=(3, 3), block_norm='L2-Hys',
                          transform_sqrt=False, feature_vector=True)
-    return realImage
 
 
 def square_region(img_region: region, x: int, y: int, window_size: int) -> region:
