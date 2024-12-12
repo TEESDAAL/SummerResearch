@@ -51,6 +51,13 @@ def hog_feature(image):
                          transform_sqrt=False, feature_vector=True)
     return realImage
 
+
+def rescale(img_region):
+    if img_region.max() - img_region.min() == 0:
+        return img_region * 0
+
+    return (img_region - img_region.min()) / (img_region.max() - img_region.min())
+
 def square_region(left,x,y,windowSize):
     width,height=left.shape
     x_end = min(width, x+windowSize)
@@ -83,7 +90,7 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
         (hist_equal, 'Hist_Eq'), (gaussian_1, 'Gau1'), (gaussian_11, 'Gau11'),
         (gauGM, 'GauXY'), (laplace, 'Lap'), (sobel_x, 'Sobel_X'),
         (sobel_y, 'Sobel_Y'), (gaussian_Laplace1, 'LoG1'),
-        (gaussian_Laplace2, 'LoG2'), (lbp, 'LBP'), (hog_feature, 'HOG'),
+        (gaussian_Laplace2, 'LoG2'), (lbp, 'LBP'), (hog_feature, 'HOG'), (rescale, 'rescale')
     ]
 
     for func, name in image_processing_layer:

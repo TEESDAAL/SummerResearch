@@ -82,6 +82,11 @@ def rect_region(img_region: region, x: int, y: int, width: int, height: int) -> 
     y_end = min(h, y + height)
     return img_region[x:x_end, y:y_end]
 
+def rescale(img_region: region) -> region:
+    if img_region.max() - img_region.min() == 0:
+        return img_region * 0
+
+    return (img_region - img_region.min()) / (img_region.max() - img_region.min())
 
 def combine(a: float, b: float) -> prediction:
     return complex(a, b)
@@ -112,7 +117,7 @@ def create_pset(image_width, image_height) -> gp.PrimitiveSetTyped:
         (hist_equal, 'Hist_Eq'), (gaussian_1, 'Gau1'), (gaussian_11, 'Gau11'),
         (gauGM, 'GauXY'), (laplace, 'Lap'), (sobel_x, 'Sobel_X'),
         (sobel_y, 'Sobel_Y'), (gaussian_Laplace1, 'LoG1'),
-        (gaussian_Laplace2, 'LoG2'), (lbp, 'LBP'), (hog_feature, 'HOG'),
+        (gaussian_Laplace2, 'LoG2'), (lbp, 'LBP'), (hog_feature, 'HOG'), (rescale, 'rescale')
     ]
 
     for func, name in image_processing_layer:

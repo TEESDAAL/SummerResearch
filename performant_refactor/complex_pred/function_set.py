@@ -86,6 +86,12 @@ def rect_region(img_region: region, x: int, y: int, width: int, height: int) -> 
     return img_region[x:x_end, y:y_end]
 
 
+def rescale(img_region: region) -> region:
+    if img_region.max() - img_region.min() == 0:
+        return img_region * 0
+
+    return (img_region - img_region.min()) / (img_region.max() - img_region.min())
+
 def combine(a: float, b: float) -> prediction:
     return a, b
 
@@ -167,6 +173,7 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset.addPrimitive(gaussian_Laplace2, [Region], Region, name='LoG2')
     pset.addPrimitive(lbp, [Region], Region, name='LBP')
     pset.addPrimitive(hog_feature, [Region], Region, name='HOG')
+    pset.addPrimitive(rescale, [Region], Region, name='rescale')
     # Functions  at the region detection layer
     pset.addPrimitive(square_region, [Img, X, Y, Size], Region, name='Region_S')
     pset.addPrimitive(rect_region, [Img, X, Y, Size, Size], Region, name='Region_R')

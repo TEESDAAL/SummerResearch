@@ -63,9 +63,9 @@ if __name__ == "__main__":
     make_datasets()
 
 
-x_train = np.load("datasets/x_train.npy")
+x_train = np.load("datasets/x_train.npy") / 255
 y_train = np.load("datasets/y_train.npy")
-x_validation = np.load("datasets/x_val.npy")
+x_validation = np.load("datasets/x_val.npy") / 255
 y_validation = np.load("datasets/y_val.npy")
-x_test = np.load("datasets/x_test.npy")
+x_test = np.load("datasets/x_test.npy") / 255
 y_test = np.load("datasets/y_test.npy")
