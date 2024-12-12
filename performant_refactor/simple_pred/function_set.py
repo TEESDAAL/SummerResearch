@@ -57,6 +57,13 @@ def lbp(img_region: region) -> region:
         59
     )
 
+def lbp2(img_region: region) -> region:
+    # 'uniform','default','ror','var'
+    return np.divide(
+        local_binary_pattern(img_region, 8, 1.5, method='nri_uniform'),
+        59
+    )
+
 
 def hist_equal(img_region: region) -> region:
     return equalize_hist(img_region, nbins=256, mask=None)
