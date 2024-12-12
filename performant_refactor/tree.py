@@ -4,8 +4,8 @@ from deap import gp
 import pygraphviz as pgv, os, numpy as np
 from matplotlib import pyplot as plt
 
-def show_img(img, title, save_to=None, cmap="binary"):
-    plt.imshow(img, cmap=cmap)
+def show_img(img, title, save_to=None):
+    plt.imshow(img, cmap="gray")
     plt.colorbar()
     if save_to is None:
         plt.title(title)
@@ -84,7 +84,7 @@ class Tree:
 
         if isinstance(self._result, np.ndarray):
             os.makedirs("_treedata", exist_ok=True)
-            show_img(self._result, '', save_to=f'_treedata/{self.id()}.png', cmap="gray")
+            show_img(self._result, '', save_to=f'_treedata/{self.id()}.png')
 
 
         for child in self.children:
