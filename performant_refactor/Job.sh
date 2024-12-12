@@ -35,4 +35,4 @@ homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/performant_refactor'
 
 cd $homeDir
 
-python -m scoop model_selector.py $model -s $SGE_TASK_ID -p 100 -g 100
+python -m scoop model_selector.py $model -s $SGE_TASK_ID -p 100 -g 75
