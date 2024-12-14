@@ -113,7 +113,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
     # Evaluate the individuals with an invalid fitness
     #invalid_ind = [ind for ind in population if not ind.fitness.valid]
     #print(len(invalid_ind))
-    weights = np.ones(len(x_train))
+    weights = normalize(np.ones(len(x_train)))
     def evaluate_individual(individual, weights: ndarray) -> tuple[float, np.ndarray]:
         e = partial(toolbox.error, individual=individual)
 
@@ -146,7 +146,6 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
     hof2 = evalValidation(offspring_for_va, toolbox, hof2)
 
     for gen in range(1, ngen + 1):
-        print(weights)
         population_for_va=[toolbox.clone(ind) for ind in population]
         offspring_for_va = toolbox.selectElitism(population_for_va, k=1)
         hof2 = evalValidation(offspring_for_va, toolbox, hof2)
@@ -196,5 +195,9 @@ def evalValidation(offspring_for_va,toolbox,hof2):
         hof2.update(offspring_for_va)
     return hof2
 
-def normalize(array: np.ndarray) -> np.ndarray:
-    return array + (1-array.mean())
+def normalize(v: np.ndarray) -> np.ndarray:
+    norm = np.linalg.norm(v)
+    if norm == 0:
+       return v
+    u = v / norm
+    return u / u.mean()
