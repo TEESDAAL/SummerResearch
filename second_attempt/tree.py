@@ -4,7 +4,7 @@ from deap import gp
 import pygraphviz as pgv, os, numpy as np
 from matplotlib import pyplot as plt
 
-def show_img(img, title, save_to=None, cmap="binary"):
+def show_img(img, title, save_to=None, cmap="gray"):
     plt.imshow(img, cmap=cmap)
     plt.colorbar()
     if save_to is None:
