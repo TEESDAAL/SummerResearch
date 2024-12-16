@@ -1,9 +1,8 @@
-import random, numpy as np
+import random, numpy as np, math
 from deap import tools
 from numpy._core.multiarray import ndarray
 from shared_tools.make_datasets import x_train, y_train
 from functools import partial
-from shared_tools.fitness_function import error
 
 def varAnd(population, toolbox, cxpb, mutpb):
     r"""Part of an evolutionary algorithm applying only the variation part
@@ -121,8 +120,8 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
             e,
             zip(x_train, y_train, weights)
         )))
-
-        return sum(errors) / len(errors), errors
+        # `max` may fix an issue
+        return sum(errors) / len(errors), np.vecotrise(lambda x: max(math.sqrt(2), x))(errors)
 
     fitnesses_errors = [evaluate_individual(p, weights) for p in population]
 
@@ -132,7 +131,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
         total_errors += errors
 
     weights = normalize(weights + normalize(total_errors))
-
+    print(weights)
     if halloffame is not None:
         halloffame.update(population)
 
@@ -198,6 +197,6 @@ def evalValidation(offspring_for_va,toolbox,hof2):
 def normalize(v: np.ndarray) -> np.ndarray:
     norm = np.linalg.norm(v)
     if norm == 0:
-       return v
+       return np.ones(len(v))
     u = v / norm
     return u / u.mean()
