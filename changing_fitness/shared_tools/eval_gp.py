@@ -121,7 +121,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
             zip(x_train, y_train, weights)
         )))
         # `max` may fix an issue
-        return sum(errors) / len(errors), np.vecotrise(lambda x: max(math.sqrt(2), x))(errors)
+        return sum(errors) / len(errors), np.vectorize(lambda x: max(math.sqrt(2), x))(errors)
 
     fitnesses_errors = [evaluate_individual(p, weights) for p in population]
 
