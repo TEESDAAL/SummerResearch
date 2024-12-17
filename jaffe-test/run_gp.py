@@ -52,10 +52,10 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
     endTime = time.process_time()
     trainTime = endTime - beginTime
 
-    best_individual = hof[0]
+    best_individual = hof2[0]
     testResults = toolbox.test(best_individual)
     testTime = time.process_time() - endTime
-    print('Best individual ', best_individual)
+    print('Best individual (on validation set)', best_individual)
     print('Test results  ', testResults)
     print('Train time  ', trainTime)
     print('Test time  ', testTime)

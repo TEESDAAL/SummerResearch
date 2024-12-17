@@ -5,7 +5,7 @@ from PIL import Image
 
 T, A, B = TypeVar('T'), TypeVar('A'), TypeVar('B')
 
-type Img = np.ndarray
+Img = np.ndarray
 
 READ_PATH = "/home/loaf/Downloads/jaffedbase/jaffedbase"
 WRITE_PATH = "../datasets"

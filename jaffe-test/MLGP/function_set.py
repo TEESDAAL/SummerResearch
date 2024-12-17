@@ -71,9 +71,7 @@ def rect_region(left, x, y, windowSize1,windowSize2):
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset = gp.PrimitiveSetTyped('MAIN', [Img], float)
 
-    feature_construction_layer = [np.std, np.mean, np.min, np.max]
-    for func in feature_construction_layer:
-        pset.addPrimitive(func, [Region], float, name=func.__name__)
+    pset.addPrimitive(np.std, [Region], float, name="std")
 
     pset.addPrimitive(operator.sub, [float, float], float, name="sub")
 
