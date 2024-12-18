@@ -45,11 +45,11 @@ def make_datasets() -> None:
 
     populate_set(train_set, 1_000, get_cell)
     populate_set(val_set, 500, get_cell)
-    populate_set(test_set, 8000, get_cell)
+    populate_set(test_set, 800, get_cell)
 
     for dataset, name in [(train_set, 'train'), (val_set, 'val'), (test_set, 'test')]:
         x, y = unzip(dataset)
-        np.save(f"{WRITE_PATH}/x_{name}.npy", np.array(x))
+        np.save(f"{WRITE_PATH}/x_{name}.npy", np.array([img_from_num(n) for n in x]))
         np.save(f"{WRITE_PATH}/y_{name}.npy", np.array(y))
 
 
