@@ -31,7 +31,7 @@ else
 fi
 
 model=$1
-homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/performant_refactor'
+homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/even_dataset'
 
 cd $homeDir
 
