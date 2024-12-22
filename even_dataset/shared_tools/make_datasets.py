@@ -6,7 +6,7 @@ A, B = TypeVar('A'), TypeVar('B')
 
 BASE_PATH = "/home/loaf/Downloads/train_set"
 WRITE_PATH = "../datasets"
-type ImgNum = int | str
+ImgNum = int | str
 
 
 def img_from_num(number: ImgNum) -> np.ndarray:
