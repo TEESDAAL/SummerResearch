@@ -3,7 +3,7 @@ from typing import Callable, Sequence
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import KFold
-from sklearn.multioutput import MultiOutputRegressor
+from sklearn.multioutput import MultiOutputRegressor, RegressorChain
 from sklearn.svm import LinearSVR, SVR
 
 def squared_distance(t1: tuple[float, float], t2: tuple[float, float]) -> float:
@@ -50,5 +50,5 @@ def error(pred, truth) -> float:
     errors = list(squared_distance(p, t) for p, t in zip(pred, truth))
     return sum(errors) / len(errors)
 
-def model():
-    return MultiOutputRegressor(SVR())
+def model(**kwargs):
+    return RegressorChain(SVR(**kwargs))

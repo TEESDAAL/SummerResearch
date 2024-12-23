@@ -1,6 +1,6 @@
 import time, pickle, numpy as np
 from shared_tools.make_datasets import x_train, y_train, x_validation, y_validation, x_test, y_test
-from deap import gp, tools
+from deap import gp, tools, algorithms
 import shared_tools.eval_gp as eval_gp
 import simple_pred.function_set as simple_fs
 from shared_tools.toolbox import create_toolbox, update_evalutation_function
@@ -29,13 +29,18 @@ def run_gp(parameters, toolbox):
     mstats.register("min", np.min)
     mstats.register("max", np.max)
     log.header = ["gen", "evals"] + mstats.fields
-    pop, log, hof2 =  eval_gp.eaSimple(
-        pop, toolbox, parameters.crossover, parameters.mutation,
-        parameters.elitism, parameters.generations,
+    # pop, log, hof2 =  eval_gp.eaSimple(
+    #     pop, toolbox, parameters.crossover, parameters.mutation,
+    #     parameters.elitism, parameters.generations,
+    #     stats=mstats, halloffame=hof, verbose=True
+    # )
+    algorithms.eaSimple(
+        pop, toolbox, parameters.crossover,
+        parameters.mutation, parameters.generations,
         stats=mstats, halloffame=hof, verbose=True
     )
 
-    return pop, log, hof, hof2
+    return pop, log, hof
 
 
 def main(parameters, **kwargs) -> gp.PrimitiveTree:
@@ -55,7 +60,7 @@ def main(parameters, **kwargs) -> gp.PrimitiveTree:
 def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
     beginTime = time.process_time()
 
-    pop, log, hof, hof2 = run_gp(parameters, toolbox)
+    pop, log, hof = run_gp(parameters, toolbox)
 
     endTime = time.process_time()
     trainTime = endTime - beginTime
