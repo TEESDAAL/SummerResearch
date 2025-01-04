@@ -21,7 +21,7 @@ def arousal_valence_from_number(number: ImgNum) -> tuple[float, float]:
 
 def important_landmarks_from_number(number: ImgNum) -> np.ndarray:
     landmarks = np.load(f"{BASE_PATH}/annotations/{number}_lnd.npy")
-    return np.array(list(zip(landmarks[0::2][36:], landmarks[1::2][36:])))
+    return np.array(list(zip(landmarks[0::2][36:], landmarks[1::2][36:]))).astype('uint16')
 
 
 def points_in_range(start, end, n):
