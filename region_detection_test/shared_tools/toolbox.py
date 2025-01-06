@@ -17,13 +17,14 @@ def create_toolbox(
 
     toolbox = base.Toolbox()
 
-    if parameters.no_scoop:
+    if parameters.use_scoop:
+        toolbox.register("parrallel_map", futures.map)
+    else:
         threads_pool = multiprocessing.dummy.Pool()
         process_pool = multiprocessing.Pool()
         toolbox.register("map", threads_pool.map)
         toolbox.register("parrallel_map", process_pool.map)
-    else:
-        toolbox.register("parrallel_map", futures.map)
+
 
 
 

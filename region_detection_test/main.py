@@ -20,7 +20,7 @@ parser.add_argument('-ps', '--parsimony-size', default=params.parsimony_size, he
 parser.add_argument('-imin', '--initial-min-depth', default=params.initialMinDepth, help=f"The initial minimum depth to construct a tree, defaults to {params.initialMinDepth}")
 parser.add_argument('-imax', '--initial-max-depth', default=params.initialMaxDepth, help=f"The initial minimum depth to construct a tree, defaults to {params.initialMaxDepth}")
 parser.add_argument('--no-record', action='store_true', help="a keyword argument that can be passed in to not record the run.")
-parser.add_argument('--no-scoop', action='store_true', help="a keyword argument that can be passed in to use the normal multithreading library instead of scoop.")
+parser.add_argument('--use-scoop', action='store_true', help="a keyword argument that can be passed in to use the normal multithreading library instead of scoop.")
 
 
 if __name__ == "__main__":
