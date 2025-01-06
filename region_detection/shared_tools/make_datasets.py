@@ -49,7 +49,7 @@ def make_datasets() -> None:
     test_set = []
     get_cell = itertools.cycle(catagories.values())
 
-    populate_set(train_set, 1_000, get_cell)
+    populate_set(train_set, 100, get_cell)
     populate_set(val_set, 500, get_cell)
     populate_set(test_set, 800, get_cell)
 

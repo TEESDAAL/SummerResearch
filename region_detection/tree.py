@@ -1,12 +1,21 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar, Sequence, Union
 from deap import gp
 import pygraphviz as pgv, os, numpy as np
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, patches
 
-def show_img(img, title, save_to=None):
-    plt.imshow(img, cmap="gray")
-    plt.colorbar()
+def show_img(img, title, regions=None, save_to=None):
+
+    fig, ax = plt.subplots()
+
+    image = ax.imshow(img, cmap="gray")
+    plt.colorbar(image, ax=ax)
+    if regions is not None:
+        for region in regions:
+
+            rect = patches.Rectangle((region[0], region[1]), region[2], region[3], linewidth=3, edgecolor='r', facecolor='none')
+            # Add the patch to the Axes
+            ax.add_patch(rect)
     if save_to is None:
         plt.title(title)
         plt.show()
@@ -19,14 +28,23 @@ T = TypeVar('T')
 @dataclass
 class Box(Generic[T]):
     value: T
+Predicate = Callable[[Any], bool]
 
 @dataclass
 class Tree:
     function: Any
     children: list["Tree"]
     pset: gp.PrimitiveSetTyped
+    _input: Any = None
     _result: Any = None
-    _node_num: int = None
+
+    def display_methods(self) -> Sequence[tuple[Predicate, Callable[[pgv.AGraph, Any, Any], None]]]:
+        return [
+            (lambda data: isinstance(data, np.ndarray),
+             lambda graph, img, _: self.add_image(graph, img)),
+            (lambda data: isinstance(data, list),
+            lambda graph, regions, inputs: self.add_text(graph, self.add_image(graph, inputs[0], hightligted_regions=regions)))
+        ] + [(lambda _: True, lambda graph, data, _: self.add_text(graph, data))]
 
     def __iter__(self):
         return iter((self.function, self.children))
@@ -70,22 +88,29 @@ class Tree:
     def _display_result(self, graph):
         if self.function.arity == 0 and "ARG" not in self.function.name:
             return
-        if isinstance(self._result, np.ndarray):
-            graph.add_node(f"{self.id()}result", image=f'_treedata/{self.id()}.png', label="", imagescale=True, fixedsize=True, shape="plaintext", width=2, height=2)
-        else:
-            graph.add_node(f"{self.id()}result", label=f"{self._result}", shape="plaintext")
+        for predicate, drawing_function in self.display_methods():
+            if predicate(self._result):
+                drawing_function(graph, self._result, self._input)
+                break
 
         graph.add_edge(self.id(), f"{self.id()}result", style="invis", dir="both")
         B=graph.add_subgraph([self.id(),f"{self.id()}result"],name=f"{self.id()}-resultholder")
         B.graph_attr['rank']='same'
 
-    def _evaluate_all_nodes(self, *args) -> Any:
+    def add_text(self, graph, data) -> None:
+        graph.add_node(f"{self.id()}result", label=f"{data}", shape="plaintext")
+
+    def add_image(self, graph, data, hightligted_regions=None, width: float=2, height: float=2) -> None:
+        path = f'_treedata/{self.id()}.png'
+        os.makedirs("_treedata", exist_ok=True)
+        show_img(data, '', save_to=path, regions=hightligted_regions)
+
+        graph.add_node(f"{self.id()}result", image=f'_treedata/{self.id()}.png', label="", imagescale=True, fixedsize=True, shape="plaintext", width=width, height=height)
+        #os.remove(path)
+
+    def _evaluate_all_nodes(self, *args) -> None:
+        self._input = args
         self._result = self.compile()(*args)
-
-        if isinstance(self._result, np.ndarray):
-            os.makedirs("_treedata", exist_ok=True)
-            show_img(self._result, '', save_to=f'_treedata/{self.id()}.png')
-
 
         for child in self.children:
             child._evaluate_all_nodes(*args)

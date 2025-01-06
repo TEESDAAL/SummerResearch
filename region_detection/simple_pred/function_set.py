@@ -120,7 +120,7 @@ def centroid_clustering_to_region(image: image, number_clusters: int, x_pad: int
     for cx, cy in clusterer.cluster_centers_:
         top_x, top_y = max(0, cx - x_pad), max(0, cy - y_pad)
         width, height = min(img_w, cx + 2*x_pad), min(img_h, cx + 2*y_pad)
-        regions.append((top_x, top_y, width, height))
+        regions.append((int(top_x), int(top_y), int(width), int(height)))
 
     return regions
 
@@ -129,12 +129,14 @@ def density_clustering_to_region(image: image, number_clusters: int, x_pad: int,
     if number_clusters == 0:
         return []
 
-    clusterer = clustering_method()
     img_w, img_h = image.shape
+    regions: list[region] = [(0, 0, img_w, img_h)]*number_clusters
+
+    clusterer = clustering_method()
     points = np.array([p for p in product(range(img_w), range(img_h)) if image[p]])
     if len(points) < number_clusters:
         # Make the cluster the size of the whole image if it there are no valid points
-        return [(0, 0, img_w, img_h)]*number_clusters
+        return regions
 
     labeled_points = zip(clusterer.fit_predict(points), points)
     clusters = {label: [] for label in clusterer.labels_}
@@ -144,13 +146,16 @@ def density_clustering_to_region(image: image, number_clusters: int, x_pad: int,
     clusters = {label:np.array(points) for label, points in clusters.items() if label != -1}
 
     important_regions = list(sorted(clusters.values(), key=lambda cluster: -score(cluster)))
-    regions: list[region] = [(0, 0, img_w, img_h) for _ in range(number_clusters)]
-
     for i, points in enumerate(important_regions[:number_clusters]):
-        top_x, top_y = np.array(x for x, _ in points).min(), np.array(y for _, y in points).min()
-        width, height = np.array(x for x, _ in points).max() - top_x, np.array(y for _, y in points).max() - top_y
+        xs, ys = np.array(x for x, _ in points), np.array(y for _, y in points)
+        top_x, top_y = xs.min(), ys.min()
+        width, height = xs.max() - top_x, ys.max() - top_y
 
-        regions[i] = (min(0, top_x - x_pad), min(0, top_y - y_pad), max(img_w - top_x, width + x_pad), max(img_h - top_y, height + y_pad))
+        regions[i] = (
+            min(0, top_x - x_pad), min(0, top_y - y_pad),
+            max(img_w - top_x, width + x_pad), max(img_h - top_y, height + y_pad)
+        )
+
 
     return regions
 

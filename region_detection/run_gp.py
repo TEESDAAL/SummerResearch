@@ -29,13 +29,19 @@ def run_gp(parameters, toolbox):
     mstats.register("min", np.min)
     mstats.register("max", np.max)
     log.header = ["gen", "evals"] + mstats.fields
-    pop, log, hof2 =  eval_gp.eaSimple(
+    # pop, log, hof2 = eval_gp.eaSimple(
+    #     pop, toolbox, parameters.crossover, parameters.mutation,
+    #     parameters.elitism, parameters.generations,
+    #     stats=mstats, halloffame=hof, verbose=True
+    # )
+    #
+    # return pop, log, hof, hof2
+    log = algorithms.eaSimple(
         pop, toolbox, parameters.crossover, parameters.mutation,
-        parameters.elitism, parameters.generations,
-        stats=mstats, halloffame=hof, verbose=True
+        parameters.generations, stats=mstats, halloffame=hof, verbose=True
     )
 
-    return pop, log, hof, hof2
+    return pop, log, hof
 
 
 def main(parameters, **kwargs) -> gp.PrimitiveTree:
@@ -57,7 +63,7 @@ def main(parameters, **kwargs) -> gp.PrimitiveTree:
 def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
     beginTime = time.process_time()
 
-    pop, log, hof, hof2 = run_gp(parameters, toolbox)
+    pop, log, hof = run_gp(parameters, toolbox)
 
     endTime = time.process_time()
     trainTime = endTime - beginTime
