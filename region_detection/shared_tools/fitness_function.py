@@ -1,23 +1,39 @@
-from deap import gp
+from deap import gp, base
 from typing import Callable
 import numpy as np
 from shared_tools.make_datasets import x_train
+from functools import partial
 
 x = y = width = height = int
 Region = tuple[x, y, width, height]
 Point = tuple[x, y]
 Landmarks = list[Point]
+cache = {}
+
+def evaluate(individual: gp.PrimitiveTree, toolbox: base.Toolbox, xs: np.ndarray, ys: np.ndarray, mode: str) -> tuple[float]:
+    key = str(individual) + mode
+    if key in cache:
+        toolbox.cache_hits.value += 1
+        return cache[key],
+
+    regions = toolbox.parallel_map(
+        partial(extract_regions, individual=individual, compiler=toolbox.compile),
+        xs
+    )
+
+    errors: list[float] = list(toolbox.parallel_map(error, zip(regions, ys)))
+
+    fitness = sum(errors) / len(errors)
+    cache[key] = fitness
+    return fitness,
 
 
-def evaluate(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree], Callable], xs: np.ndarray, ys: np.ndarray) -> tuple[float]:
-    regions_extractor = compiler(individual)
-    errors: list[float] = [
-        error(regions_extractor(image), landmarks) for image, landmarks in zip(xs, ys)
-    ]
-    return sum(errors) / len(errors),
+def extract_regions(image, individual, compiler) -> list[Region]:
+    return compiler(individual)(image)
 
 
-def error(regions, points) -> float:
+def error(regions_points) -> float:
+    regions, points = regions_points
     captured_points = sum(int(inside_regions(p, regions)) for p in points)
     area = sum(region[2] * region[3] for region in regions)
     if area == 0:

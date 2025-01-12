@@ -5,7 +5,7 @@ from functools import partial
 from shared_tools.fitness_function import error
 
 def varAnd(population, toolbox, cxpb, mutpb):
-    """Part of an evolutionary algorithm applying only the variation part
+    r"""Part of an evolutionary algorithm applying only the variation part
     (crossover **and** mutation). The modified individuals have their
     fitness invalidated. The individuals are cloned so returned population is
     independent of the input population.
@@ -62,7 +62,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
 
 def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
              halloffame=None, verbose=__debug__):
-    """This algorithm reproduce the simplest evolutionary algorithm as
+    r"""This algorithm reproduce the simplest evolutionary algorithm as
     presented in chapter 7 of [Back2000]_.
 
     :param population: A list of individuals.

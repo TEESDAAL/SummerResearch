@@ -40,6 +40,7 @@ def run_gp(parameters, toolbox):
         pop, toolbox, parameters.crossover, parameters.mutation,
         parameters.generations, stats=mstats, halloffame=hof, verbose=True
     )
+    print(f"{toolbox.cache_hits.value} cache hits")
 
     return pop, log, hof
 

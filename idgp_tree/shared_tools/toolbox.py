@@ -16,11 +16,11 @@ def create_toolbox(
 
     toolbox = base.Toolbox()
 
-    if parameters.no_scoop:
+    if not parameters.use_scoop:
         pool = multiprocessing.Pool()
-        toolbox.register("map", pool.map)
+        toolbox.register("parallel_map", pool.map)
     else:
-        toolbox.register("map", futures.map)
+        toolbox.register("parallel_map", futures.map)
 
 
 
@@ -56,10 +56,10 @@ def update_evalutation_function(toolbox, data_sets):
     x_train, y_train = data_sets["train"]
     x_validation, y_validation = data_sets["validation"]
     x_test, y_test = data_sets["test"]
-    toolbox.register("evaluate", evaluate, compiler=toolbox.compile, xs=x_train, ys=y_train)
-    toolbox.register("validation", evaluate, compiler=toolbox.compile, xs=x_validation, ys=y_validation)
+    toolbox.register("evaluate", evaluate, toolbox=toolbox, xs=x_train, ys=y_train, mode="test")
+    toolbox.register("validation", evaluate, toolbox=toolbox, xs=x_validation, ys=y_validation, mode="val")
     toolbox.register("test", test,
-                     compiler=toolbox.compile,
+                     toolbox=toolbox,
                      X_train=x_train, y_train=y_train,
                      X_test=x_test, y_test=y_test)
 

@@ -1,5 +1,6 @@
 from deap import base, creator, gp
 from deap import tools
+from scipy.ndimage import value_indices
 import shared_tools.gp_restrict as gp_restrict
 import numpy as np, operator, multiprocessing
 from scoop import futures
@@ -16,11 +17,11 @@ def create_toolbox(
 
     toolbox = base.Toolbox()
 
-    if parameters.no_scoop:
+    if not parameters.use_scoop:
         pool = multiprocessing.Pool()
-        toolbox.register("map", pool.map)
+        toolbox.register("parallel_map", pool.map)
     else:
-        toolbox.register("map", futures.map)
+        toolbox.register("parallel_map", futures.map)
 
 
 
@@ -28,6 +29,7 @@ def create_toolbox(
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=pset)
+    toolbox.register("cache_hits", Box(0))
 
     update_evalutation_function(toolbox, data_sets)
 
@@ -56,7 +58,14 @@ def update_evalutation_function(toolbox, data_sets):
     x_train, y_train = data_sets["train"]
     x_validation, y_validation = data_sets["validation"]
     x_test, y_test = data_sets["test"]
-    toolbox.register("evaluate", evaluate, compiler=toolbox.compile, xs=x_train, ys=y_train)
-    toolbox.register("validation", evaluate, compiler=toolbox.compile, xs=x_validation, ys=y_validation)
-    toolbox.register("test", evaluate, compiler=toolbox.compile, xs=x_test, ys=y_test)
+    toolbox.register("evaluate", evaluate, toolbox=toolbox, xs=x_train, ys=y_train, mode="train")
+    toolbox.register("validation", evaluate, toolbox=toolbox, xs=x_validation, ys=y_validation, mode="val")
+    toolbox.register("test", evaluate, toolbox=toolbox, xs=x_test, ys=y_test, mode="test")
 
+
+class Box:
+    def __init__(self, value):
+        self.value = value
+    def __call__(self):
+        # This is so it can go into the toolbox, don't call this function
+        return self.value

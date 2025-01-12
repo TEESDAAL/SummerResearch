@@ -3,12 +3,10 @@ from functools import partial
 import numpy as np
 from deap import gp
 from shared_tools.fitness_function import Landmarks
-from simple_pred.data_types import (image, region, X, Y, Size,
-                        Regions, Img, Padding, NumClusters,
-                        SmallPadding, Scorer, LowerBound,
-                        SafeRange, FilteredImg, Weight
-
-                        )  # defined by author
+from simple_pred.data_types import (
+    image, region, Size, Regions, Img, Padding, NumClusters,
+    SmallPadding, Scorer, LowerBound, FilteredImg, Weight
+)
 
 from scipy import ndimage
 from scipy.spatial import ConvexHull
@@ -16,7 +14,7 @@ from skimage.feature import local_binary_pattern, hog
 from skimage.exposure import equalize_hist
 import random
 from itertools import product
-from sklearn.cluster import DBSCAN, KMeans, DBSCAN, AgglomerativeClustering
+from sklearn.cluster import DBSCAN, KMeans, Birch, AgglomerativeClustering
 
 
 def gaussian_1(img_region: image) -> image:
@@ -112,27 +110,29 @@ def centroid_clustering_to_region(image: image, number_clusters: int, x_pad: int
     points = np.array([p for p in product(range(img_w), range(img_h)) if image[p] != 0])
     if len(points) < number_clusters:
         # Make the cluster the size of the whole image if it there are no valid points
-        return [(0, 0, img_w, img_h)]*number_clusters
+        return [(0, 0, 0, 0)]*number_clusters
 
     clusterer.fit(points)
 
     regions = []
-    for cx, cy in clusterer.cluster_centers_:
+    centroids = clusterer.cluster_centers_ if clustering_method == KMeans else clusterer.subcluster_centers_
+
+    for cx, cy in centroids:
         top_x, top_y = max(0, cx - x_pad), max(0, cy - y_pad)
         width, height = min(img_w, cx + 2*x_pad), min(img_h, cx + 2*y_pad)
         regions.append((int(top_x), int(top_y), int(width), int(height)))
 
-    return regions
+    return list(sorted(regions, key=lambda region: region[0] + region[2]/2))
 
 
-def density_clustering_to_region(image: image, number_clusters: int, x_pad: int, y_pad: int, score, clustering_method) -> list[region]:
+def density_clustering_to_region(image: image, number_clusters: int, x_pad: int, y_pad: int, clustering_method) -> list[region]:
     if number_clusters == 0:
         return []
 
     img_w, img_h = image.shape
-    regions: list[region] = [(0, 0, img_w, img_h)]*number_clusters
+    regions: list[region] = [(0, 0, 0, 0)]*number_clusters
 
-    clusterer = clustering_method()
+    clusterer = clustering_method(n_clusters=number_clusters)
     points = np.array([p for p in product(range(img_w), range(img_h)) if image[p]])
     if len(points) < number_clusters:
         # Make the cluster the size of the whole image if it there are no valid points
@@ -140,14 +140,15 @@ def density_clustering_to_region(image: image, number_clusters: int, x_pad: int,
 
     labeled_points = zip(clusterer.fit_predict(points), points)
     clusters = {label: [] for label in clusterer.labels_}
+
     for label, point in labeled_points:
+        if label == -1:
+            continue
         clusters[label].append(point)
 
-    clusters = {label:np.array(points) for label, points in clusters.items() if label != -1}
 
-    important_regions = list(sorted(clusters.values(), key=lambda cluster: -score(cluster)))
-    for i, points in enumerate(important_regions[:number_clusters]):
-        xs, ys = np.array(x for x, _ in points), np.array(y for _, y in points)
+    for i, points in enumerate(clusters.values()):
+        xs, ys = np.array([x for x, _ in points]), np.array([y for _, y in points])
         top_x, top_y = xs.min(), ys.min()
         width, height = xs.max() - top_x, ys.max() - top_y
 
@@ -157,7 +158,7 @@ def density_clustering_to_region(image: image, number_clusters: int, x_pad: int,
         )
 
 
-    return regions
+    return list(sorted(regions, key=lambda region: region[0] + region[2]/2))
 
 
 
@@ -173,8 +174,8 @@ def scorer(rect_area: float, hull_area: float, linearness: float, cov_weight: fl
     ] if w != 0)
 
 
-def threashold(img: image, lower_bound: float, safe_range: float) -> image:
-    return np.vectorize(lambda b: b if lower_bound < b < lower_bound + safe_range else 0.0)(img)
+def threashold(img: image, lower_bound) -> image:
+    return np.vectorize(lambda b: 1.0 if b > lower_bound else 0.0)(img)
 
 
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
@@ -195,32 +196,34 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     for func, name in image_processing_layer:
         pset.addPrimitive(func, [Img], Img, name=name)
 
-    pset.addPrimitive(threashold, [Img, LowerBound, SafeRange], FilteredImg)
+    pset.addPrimitive(threashold, [Img, LowerBound], FilteredImg)
     pset.addEphemeralConstant('lower_bound', random.random, LowerBound)
-    pset.addEphemeralConstant('safe_range', random.random, SafeRange)
 
-    centroid_clustering = [KMeans]
+    centroid_clustering = [KMeans, Birch]
     # image: image, number_clusters: int, x_pad: int, y_pad: int, clustering_method
     for clustering_method in centroid_clustering:
         pset.addPrimitive(
             partial(centroid_clustering_to_region, clustering_method=clustering_method),
             [FilteredImg, NumClusters, Padding, Padding], Regions,
-            name='KMeans'
+            name=f'{clustering_method.__name__}'
         )
 
-    density_clustering = [DBSCAN]
+    density_clustering = [AgglomerativeClustering]
     for clustering_method in density_clustering:
         pset.addPrimitive(
             partial(density_clustering_to_region, clustering_method=clustering_method),
-            [FilteredImg, NumClusters, SmallPadding, SmallPadding, Scorer], Regions,
-            name='DBSCAN'
+            [FilteredImg, NumClusters, SmallPadding, SmallPadding], Regions,
+            name=f'{clustering_method.__name__}'
         )
 
-    pset.addPrimitive(gen_scorer, [Weight]*4, Scorer, name="scorer")
+    #pset.addPrimitive(gen_scorer, [Weight]*4, Scorer, name="scorer")
 
-    pset.addEphemeralConstant('s_padding', partial(random.randint, 0, image_width // 10), SmallPadding)
-    pset.addEphemeralConstant('l_padding', partial(random.randint, image_width // 10, image_width // 2), Padding)
-    pset.addEphemeralConstant('clusters', partial(random.randint, 1, 7), NumClusters)
+    pset.addEphemeralConstant('s_padding', partial(random.randint, -5, 5), SmallPadding)
+    #pset.addEphemeralConstant('l_padding', partial(random.randint, image_width // 10, image_width // 5), Padding)
+    pset.addEphemeralConstant('l_padding', partial(random.randint, 5, 12), Padding)
+
+    #pset.addEphemeralConstant('clusters', partial(random.randint, 1, 7), NumClusters)
+    pset.addTerminal(3, NumClusters)
     # Changed from 20 to 24
     pset.addEphemeralConstant('size', partial(random.randint, 24, 60), Size)
     pset.addEphemeralConstant('weight', gen_weight, Weight)

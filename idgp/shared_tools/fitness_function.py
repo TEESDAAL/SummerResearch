@@ -22,7 +22,7 @@ def evaluate(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree]
         y_train, y_test = ys[train_index], ys[test_index]
         predictor = model()
         predictor.fit(X_train, y_train)
-        total_error += error(predictor.predict(X_test), ys)
+        total_error += error(predictor.predict(X_test), y_test) / len(X_test)
 
     return total_error / 5,
 
