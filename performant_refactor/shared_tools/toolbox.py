@@ -18,9 +18,9 @@ def create_toolbox(
 
     if parameters.no_scoop:
         pool = multiprocessing.Pool()
-        toolbox.register("map", pool.map)
+        toolbox.register("parallel_map", pool.map)
     else:
-        toolbox.register("map", futures.map)
+        toolbox.register("parallel_map", futures.map)
 
 
 
@@ -30,6 +30,7 @@ def create_toolbox(
     toolbox.register("compile", gp.compile, pset=pset)
 
     update_evalutation_function(toolbox, evaluation_function, error, data_sets)
+    toolbox.register("cache_hits", Box(0))
 
     toolbox.register("select", tools.selDoubleTournament,
                                fitness_size=parameters.tournament_size,
@@ -56,9 +57,15 @@ def update_evalutation_function(toolbox, evaluation_function, error, data_sets):
     x_train, y_train = data_sets["train"]
     x_validation, y_validation = data_sets["validation"]
     x_test, y_test = data_sets["test"]
-    toolbox.register("error", error, compiler=toolbox.compile)
-    toolbox.register("evaluate", evaluation_function, compiler=toolbox.compile, x_train=x_train, y_train=y_train)
-    toolbox.register("validation", evaluation_function, compiler=toolbox.compile, x_train=x_validation, y_train=y_validation)
-    toolbox.register("test", evaluation_function, compiler=toolbox.compile, x_train=x_test, y_train=y_test)
+    toolbox.register("evaluate", evaluation_function, toolbox=toolbox, xs=x_train, ys=y_train, mode="train")
+    toolbox.register("validation", evaluation_function, toolbox=toolbox, xs=x_validation, ys=y_validation, mode="val")
+    toolbox.register("test", evaluation_function, toolbox=toolbox, xs=x_test, ys=y_test, mode="test")
 
+
+class Box:
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self):
+        return self.value
 

@@ -71,7 +71,7 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
 
     endTime = time.process_time()
     trainTime = endTime - beginTime
-
+    print(f"There were {toolbox.cache_hits.value} cache_hits") 
     best_individual = hof[0]
     testResults = toolbox.test(best_individual)
     testTime = time.process_time() - endTime

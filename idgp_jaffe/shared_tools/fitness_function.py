@@ -69,7 +69,7 @@ def test(
     ):
     global cache_hits
 
-    print(f"There were {cache_hits}")
+    print(f"There were {cache_hits} cache hits")
     train_features = np.array(list(toolbox.parallel_map(
         partial(extract_features, individual=individual, compiler=toolbox.compile),
         X_train
