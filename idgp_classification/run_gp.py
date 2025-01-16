@@ -44,10 +44,6 @@ def main(parameters, **kwargs) -> gp.PrimitiveTree:
         "val": (x_validation, y_validation),
         "test": (x_test, y_test)
     }
-    print(y_train.shape)
-    print(y_train[:100])
-
-
 
     pset = get_pset(parameters.model)
 
