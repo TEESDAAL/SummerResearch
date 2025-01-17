@@ -100,5 +100,5 @@ class RunInfo:
     best_individual: gp.PrimitiveTree
     hall_of_fame: tools.HallOfFame
     val_hall_of_fame: tools.HallOfFame
-    model: str = "IDGP_JAFFE"
+    model: str = "FLEXGP_JAFFE"
 
