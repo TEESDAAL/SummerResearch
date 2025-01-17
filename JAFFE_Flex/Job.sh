@@ -35,4 +35,4 @@ homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/JAFFE_Flex'
 
 cd $homeDir
 
-python  main -s $SGE_TASK_ID -p 50 -g 50
+python main.py -s $SGE_TASK_ID -p 50 -g 50
