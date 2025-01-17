@@ -1,4 +1,4 @@
-import random, time, pickle, numpy as np
+import random, time, pickle, numpy as np, argparse
 from shared_tools import toolbox
 from shared_tools.fitness_function import error
 from shared_tools.make_datasets import x_train, y_train, x_test, y_test
@@ -6,6 +6,7 @@ from deap import algorithms, gp, tools
 import shared_tools.eval_gp as eval_gp
 import simple_pred.function_set as simple_fs
 from shared_tools.toolbox import create_toolbox, update_evalutation_function
+from dataclasses import dataclass
 
 def get_pset(model):
     image_width, image_height = x_train[0].shape
@@ -72,10 +73,30 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
 
     if not parameters.no_record:
         filepath = f"{parameters.model}/data"
-        pickle.dump(log, open(f"{filepath}/{parameters.seed}-{prefix}log.pkl", 'wb'))
-        pickle.dump(best_individual, open(f"{filepath}/{parameters.seed}-{prefix}best.pkl", 'wb'))
-        pickle.dump(trainTime, open(f"{filepath}/{parameters.seed}-{prefix}trainTime.pkl", 'wb'))
+        pickle.dump(RunInfo(
+            parameters=parameters,
+            log=log,
+            train_time=trainTime,
+            test_time=testTime,
+            test_accuracy=testResults,
+            best_individual=best_individual,
+            hall_of_fame=hof,
+            val_hall_of_fame=hof2,
+        ),  open(f"{filepath}/{parameters.seed}-{prefix}run-info.pkl", 'wb'))
 
 
     return hof[0]
+
+
+@dataclass
+class RunInfo:
+    parameters: argparse.ArgumentParser
+    log: tools.Logbook
+    train_time: float
+    test_time: float
+    test_accuracy: float
+    best_individual: gp.PrimitiveTree
+    hall_of_fame: tools.HallOfFame
+    val_hall_of_fame: tools.HallOfFame
+    model: str = "IDGP_JAFFE"
 

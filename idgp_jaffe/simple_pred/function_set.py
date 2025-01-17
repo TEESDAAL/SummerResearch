@@ -47,8 +47,8 @@ def all_histogram(image: Union[image, region]) -> vector:
 def all_sift(image: Union[image, region]) -> vector:
     # global and local
     width, height = image.shape
-    min_length = np.min((width,height))
-    img = np.asarray(image[0:width,0:height])
+    min_length = np.min((width, height))
+    img = np.asarray(image[0:width, 0:height])
     extractor = sift_features.SingleSiftExtractor(min_length)
     feaArrSingle = extractor.process_image(img[0:min_length,0:min_length])
     # dimension 128 for all images
