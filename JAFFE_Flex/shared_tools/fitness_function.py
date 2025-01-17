@@ -57,7 +57,7 @@ def extract_features(image, individual, compiler) -> list[float]:
 def model():
     return make_pipeline(
         StandardScaler(),
-        LinearSVC(random_state=0)
+        LinearSVC(dual=False, random_state=0)
     )
 
 
