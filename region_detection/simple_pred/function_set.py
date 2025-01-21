@@ -98,7 +98,7 @@ def rect_region(img_region: image, x: int, y: int, width: int, height: int) -> i
     w, h = img_region.shape
     x_end = min(w, x + width)
     y_end = min(h, y + height)
-    return img_region[x:x_end, y:y_end]
+    return img_region[y:y_end, x:x_end]
 
 
 def centroid_clustering_to_region(image: image, number_clusters: int, x_pad: int, y_pad: int, clustering_method) -> list[region]:
@@ -119,7 +119,9 @@ def centroid_clustering_to_region(image: image, number_clusters: int, x_pad: int
 
     for cx, cy in centroids:
         top_x, top_y = max(0, cx - x_pad), max(0, cy - y_pad)
-        width, height = min(img_w, cx + 2*x_pad), min(img_h, cx + 2*y_pad)
+        max_width, max_height = img_w - cx, img_h - cy
+
+        width, height = min(2*x_pad, max_width), min(2*y_pad, max_height)
         regions.append((int(top_x), int(top_y), int(width), int(height)))
 
     return list(sorted(regions, key=lambda region: region[0] + region[2]/2))
@@ -219,8 +221,8 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     #pset.addPrimitive(gen_scorer, [Weight]*4, Scorer, name="scorer")
 
     pset.addEphemeralConstant('s_padding', partial(random.randint, -5, 5), SmallPadding)
-    #pset.addEphemeralConstant('l_padding', partial(random.randint, image_width // 10, image_width // 5), Padding)
-    pset.addEphemeralConstant('l_padding', partial(random.randint, 5, 12), Padding)
+    pset.addEphemeralConstant('l_padding', partial(random.randint, image_width // 20, image_width // 5), Padding)
+    #pset.addEphemeralConstant('l_padding', partial(random.randint, 5, 12), Padding)
 
     #pset.addEphemeralConstant('clusters', partial(random.randint, 1, 7), NumClusters)
     pset.addTerminal(3, NumClusters)

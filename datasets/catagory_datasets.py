@@ -11,8 +11,8 @@ import functools
 
 
 BASE_PATH = "/home/loaf/Downloads/train_set"
-# WRITE_PATH = "catagory_dataset"
-WRITE_PATH = "happy_sad_dataset"
+WRITE_PATH = "catagory_dataset"
+# WRITE_PATH = "happy_sad_dataset"
 
 def img_from_num(number) -> np.ndarray:
     return np.array(Image.open(f"{BASE_PATH}/images/{number}.jpg").convert("L"))
@@ -59,8 +59,9 @@ def make_datasets() -> None:
 
 
     start = 0
-    filtered_catagories = [catagory for i, catagory in enumerate(catagories) if i in (1, 2) ]
-    for name, size in [("train", 5000), ("test", 400), ("val", 250)]:
+    filtered_catagories = [catagory for i, catagory in enumerate(catagories)] #if i in (1, 2) ]
+    for name, size in [("train", 1_000), ("test", 800), ("val", 500)]:
+        size //= len(filtered_catagories)
         print("saving: "+name)
         save_x_y(start, start+size, name, filtered_catagories)
         start += size
