@@ -84,7 +84,7 @@ def rect_region(img_region: image, x: int, y: int, width: int, height: int) -> r
     width, height = img_region.shape
     x_end = min(width, x + width)
     y_end = min(height, y + height)
-    return img_region[x:x_end, y:y_end]
+    return img_region[y:y_end, x:x_end]
 
 
 def concatenate(*args: vector) -> vector:

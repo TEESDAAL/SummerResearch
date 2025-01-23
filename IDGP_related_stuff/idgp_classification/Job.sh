@@ -31,7 +31,7 @@ else
 fi
 
 model=$1
-homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/idgp_jaffe'
+homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/IDGP_related_stuff/idgp_classification'
 
 cd $homeDir
 
