@@ -1,8 +1,6 @@
-from typing import Callable, Any, TypeVar
+from typing import Callable
+
 import numpy as np
-
-A, B, T = TypeVar('A'), TypeVar('B'), TypeVar('T')
-
 
 class Img:
     pass
@@ -19,7 +17,6 @@ class Size:
 class Region:
     pass
 
-
 class BinaryFunction:
     pass
 
@@ -33,29 +30,15 @@ class Double:
 class PredictionPair:
     pass
 
-class NumberProducingFunction:
+class UnaryFunction:
     pass
 
-class ImageProcessingFunction:
+class Scalar:
     pass
 
-class PredictionProducingFunction:
+class Ensemble:
     pass
 
-class RegionProducingFunction:
-    pass
-
-class FilteredImgProducer:
-    pass
-
-class NumClusters:
-    pass
-
-class Padding:
-    pass
-
-class LowerBound:
-    pass
 
 image = np.ndarray
 region = np.ndarray
@@ -64,4 +47,4 @@ binary_function = Callable[[float, float], float]
 prediction_pair = tuple[prediction, prediction]
 unary_function = Callable[[float], float]
 scalar = float
-image_processing_function = Callable[[image], T]
+

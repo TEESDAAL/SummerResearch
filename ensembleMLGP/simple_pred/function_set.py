@@ -1,13 +1,9 @@
 import numpy as np
-from typing import Callable
-from simple_pred.data_types import (
-    image, image, prediction, image_processing_function, A, B, T
-)
+from simple_pred.data_types import image, image, prediction
 from scipy import ndimage
 from skimage.feature import local_binary_pattern
 from skimage.exposure import equalize_hist
 from skimage.feature import hog
-from itertools import product
 
 def gaussian_1(image: image) -> image:
     return ndimage.gaussian_filter(image, sigma=1)
@@ -87,47 +83,6 @@ def safe_div(a: float, b: float) -> float:
 
     return a / b
 
-def wrapper(image_processing_func: image_processing_function, prev_function: image_processing_function) -> image_processing_function:
-    return lambda image: image_processing_func(prev_function(image))
-
-def binary_wrapper(func: Callable[[A, B], T], arg_func1: image_processing_function[A], arg_func2: image_processing_function[B]) -> image_processing_function[T]:
-    return lambda image: func(arg_func1(image), arg_func2(image))
-
-def func_wrapper(func, *args):
-    return lambda image: func(*[f(image) if callable(f) else f for f in args])
-
-def starting_point() -> image_processing_function:
-    return lambda image: image
-
-
-def threashold(img: image, lower_bound) -> image:
-    return np.vectorize(lambda b: 1.0 if b > lower_bound else 0.0)(img)
-
-def centroid_clustering_to_region(image: image, number_clusters: int, x_pad: int, y_pad: int, clustering_method) -> list[region]:
-    if number_clusters == 0:
-        return []
-
-    clusterer = clustering_method(n_clusters=number_clusters)
-    img_w, img_h = image.shape
-    points = np.array([p for p in product(range(img_w), range(img_h)) if image[p] != 0])
-    if len(points) < number_clusters:
-        # Make the cluster the size of the whole image if it there are no valid points
-        return [(0, 0, 0, 0)]*number_clusters
-
-    clusterer.fit(points)
-
-    regions = []
-
-    for cx, cy in clusterer.cluster_centers_ :
-        top_x, top_y = max(0, cx - x_pad), max(0, cy - y_pad)
-        max_width, max_height = img_w - cx, img_h - cy
-
-        width, height = min(2*x_pad, max_width), min(2*y_pad, max_height)
-        regions.append((int(top_x), int(top_y), int(width), int(height)))
-
-    return list(sorted(regions, key=lambda region: region[0] + region[2]/2))
-
-
-def select_region(regions, i):
-    return regions[i]
+def mean(*predictions: list[tuple[float, float]]) -> tuple[float, float]:
+    return np.array([a for a, _ in predictions]).mean(), np.array([v for _, v in predictions]).mean()
 

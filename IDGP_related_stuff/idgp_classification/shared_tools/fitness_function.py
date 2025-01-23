@@ -4,17 +4,13 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import KFold
-from sklearn.multioutput import MultiOutputRegressor
-from sklearn.tree import DecisionTreeRegressor
+
 from sklearn.svm import LinearSVC
 from functools import partial
 
 cache = {}
 cache_hits = 0
 
-
-def squared_distance(t1: tuple[float, float], t2: tuple[float, float]) -> float:
-    return (t1[0] - t2[0])**2 + (t1[1] - t2[1])**2
 
 def evaluate(individual: gp.PrimitiveTree, toolbox: base.Toolbox, xs: np.ndarray, ys: np.ndarray, mode: str) -> tuple[float]:
     global cache_hits

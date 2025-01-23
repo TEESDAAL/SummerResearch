@@ -1,18 +1,19 @@
 import operator, numpy as np, random
-from typing import Callable
+from sklearn.cluster import KMeans
 from deap import gp
 from functools import partial
 from simple_pred.function_set import (
     hist_equal, gaussian_1, gaussian_11, gauGM, laplace, sobel_x, sobel_y,
     gaussian_Laplace1, gaussian_Laplace2, lbp, hog_feature, safe_div,
-    square_region, rect_region, combine, wrapper, binary_wrapper,
-    starting_point, threashold, nullary_wrapper
+    combine, wrapper, binary_wrapper, select_region, starting_point,
+    threashold, func_wrapper, centroid_clustering_to_region, select_region
 )
 
 from simple_pred.data_types import (
-    Img, X, Y, Size, Region, ImageProcessingFunction,
+    Size, ImageProcessingFunction,
     NumberProducingFunction, PredictionProducingFunction,
-    RegionProducingFunction, FilteredImgProducer
+    RegionProducingFunction, FilteredImgProducer,
+    NumClusters, Padding, LowerBound, RegionProducer
 )
 
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
@@ -32,6 +33,10 @@ def add_image_processing_functions(pset):
     ]
 
     for func, name in image_processing_layer:
+        pset.addPrimitive(
+            partial(wrapper, func), [RegionProducer],
+            RegionProducer, name=f"{name}_p"
+        )
         pset.addPrimitive(
             partial(wrapper, func), [ImageProcessingFunction],
             ImageProcessingFunction, name=f"{name}_p"
@@ -56,46 +61,34 @@ def add_regression(pset: gp.PrimitiveSetTyped) -> gp.PrimitiveSetTyped:
 
     feature_construction_layer = [np.std, np.mean, np.min, np.max]
     for func in feature_construction_layer:
-        pset.addPrimitive(partial(wrapper, func), [ImageProcessingFunction], NumberProducingFunction, name=f"{func.__name__}_p")
+        pset.addPrimitive(partial(wrapper, func), [RegionProducer], NumberProducingFunction, name=f"{func.__name__}_p")
 
     binary_operators = [operator.add, operator.sub, operator.mul, safe_div]
 
     for func in binary_operators:
         pset.addPrimitive(partial(binary_wrapper, func), [NumberProducingFunction]*2, NumberProducingFunction, name=f"{func.__name__}_p")
 
-
+    pset.addPrimitive(partial(func_wrapper, select_region), [NumClusters], RegionProducer)
     return pset
 
 
 def add_region_detection(pset, image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
-    pset.addPrimitive(partial(binary_wrapper, threashold), [ImageProcessingFunction, LowerBoundProducer], FilteredImgProducer)
+    pset.addPrimitive(partial(func_wrapper, threashold), [ImageProcessingFunction, LowerBound], FilteredImgProducer)
     pset.addEphemeralConstant('lower_bound', random.random, LowerBound)
 
     pset.addPrimitive(
-        partial(centroid_clustering_to_region, clustering_method=KMeans),
-        [FilteredImgProducer, NumClusters, Padding, Padding], Regions,
+        partial(func_wrapper, partial(centroid_clustering_to_region, clustering_method=KMeans)),
+        [FilteredImgProducer, NumClusters, Padding, Padding], RegionProducingFunction,
         name="KMeans"
     )
 
-    density_clustering = [AgglomerativeClustering]
-    for clustering_method in density_clustering:
-        pset.addPrimitive(
-            partial(density_clustering_to_region, clustering_method=clustering_method),
-            [FilteredImg, NumClusters, SmallPadding, SmallPadding], RegionProducingFunction,
-            name=f'{clustering_method.__name__}'
-        )
 
-    #pset.addPrimitive(gen_scorer, [Weight]*4, Scorer, name="scorer")
+    pset.addEphemeralConstant('padding', partial(random.randint, image_width // 20, image_width // 5), Padding)
 
-    pset.addEphemeralConstant('s_padding', partial(random.randint, -5, 5), SmallPadding)
-    pset.addEphemeralConstant('l_padding', partial(random.randint, image_width // 20, image_width // 5), Padding)
-    #pset.addEphemeralConstant('l_padding', partial(random.randint, 5, 12), Padding)
-
-    #pset.addEphemeralConstant('clusters', partial(random.randint, 1, 7), NumClusters)
-    pset.addTerminal(3, NumClusters)
+    pset.addPrimitive(starting_point, [], NumClusters)
     # Changed from 20 to 24
     pset.addEphemeralConstant('size', partial(random.randint, 24, 60), Size)
-    pset.addEphemeralConstant('weight', gen_weight, Weight)
+
     pset.renameArguments(ARG0='Image')
 
     return pset
