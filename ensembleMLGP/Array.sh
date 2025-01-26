@@ -1,5 +1,5 @@
 run=30
-models=( 'MLGP' 'simple_pred' 'complex_pred' 'complex_num_pred' )
+models=( 'simple_pred' )
 
 for model in "${models[@]}"
 do

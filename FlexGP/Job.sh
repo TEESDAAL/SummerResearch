@@ -31,8 +31,8 @@ else
 fi
 
 model=$1
-homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/performant_refactor'
+homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/FlexGP'
 
 cd $homeDir
 
-python -m scoop model_selector.py $model -s $SGE_TASK_ID -p 100 -g 75
+python main -s $SGE_TASK_ID -p 100 -g 75
