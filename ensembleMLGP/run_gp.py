@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import shared_tools.eval_gp as eval_gp
 from shared_tools.toolbox import create_toolbox
 from simple_pred.pset import create_pset
-
+from deap import algorithms
 
 
 def run_gp(parameters, toolbox):
@@ -28,7 +28,10 @@ def run_gp(parameters, toolbox):
         parameters.elitism, parameters.generations,
         stats=mstats, halloffame=hof, verbose=True
     )
-
+    # pop, log =  algorithms.eaSimple(
+    #     pop, toolbox, parameters.crossover, parameters.mutation,
+    #     parameters.generations, stats=mstats, halloffame=hof, verbose=True
+    # )
     return pop, log, hof, hof2
 
 

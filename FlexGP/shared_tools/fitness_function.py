@@ -7,6 +7,7 @@ from sklearn.model_selection import KFold
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.svm import LinearSVR, SVR
+from sklearn.ensemble import RandomForestRegressor
 from functools import partial
 
 cache = {}
@@ -15,24 +16,18 @@ cache_hits = 0
 def squared_distance(t1: tuple[float, float], t2: tuple[float, float]) -> float:
     return (t1[0] - t2[0])**2 + (t1[1] - t2[1])**2
 
-def evaluate(individual: gp.PrimitiveTree, toolbox: base.Toolbox, xs: np.ndarray, ys: np.ndarray) -> tuple[float]:
+def evaluate(individual: gp.PrimitiveTree, toolbox: base.Toolbox, xs: np.ndarray, ys: np.ndarray, mode: str) -> tuple[float]:
     global cache_hits
     """Compute the MSE of the distances between the models answer and the true (val, aro) pair avoids computing the sqrt"""
-    key = str(individual)
+    key = str(individual) + mode
     if key in cache:
         cache_hits += 1
         return cache[key],
 
-    features = []
-    try:
-        features = np.array(list(toolbox.parallel_map(
-            partial(extract_features, individual=individual, compiler=toolbox.compile),
-            xs
-        )))
-    except Exception as e:
-        print(key)
-        raise e
-
+    features = np.array(list(toolbox.parallel_map(
+        partial(extract_features, individual=individual, compiler=toolbox.compile),
+        xs
+    )))
 
     n_splits = 5
     errors = toolbox.parallel_map(
@@ -62,7 +57,7 @@ def extract_features(image, individual, compiler) -> list[float]:
 def model():
     return make_pipeline(
         StandardScaler(),
-        MultiOutputRegressor(LinearSVR(dual=False, loss="squared_epsilon_insensitive", random_state=0))
+        RandomForestRegressor(random_state=0)
     )
 
 
@@ -83,11 +78,11 @@ def test(
     )))
     predictor = model()
     predictor.fit(train_features, y_train)
-
+    print(f"final train acc {error(predictor.predict(train_features), y_train)}")
     return error(predictor.predict(test_features), y_test),
 
 
-def error(pred, truth) -> float:
+def error(pred: list[tuple[float, float]], truth: list[tuple[float, float]]) -> float:
     errors = list(squared_distance(p, t) for p, t in zip(pred, truth))
     return sum(errors) / len(errors)
 

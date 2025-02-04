@@ -80,6 +80,8 @@ def test(
     predictor = model()
     predictor.fit(train_features, y_train)
 
+
+    print(f"Final train error: {error(predictor.predict(train_features), y_train)}")
     return error(predictor.predict(test_features), y_test)
 
 

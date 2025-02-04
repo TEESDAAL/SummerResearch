@@ -19,6 +19,7 @@ def create_toolbox(
     toolbox = base.Toolbox()
 
     if parameters.use_scoop:
+        toolbox.register("close_pool", do_nothing)
         toolbox.register("parallel_map", futures.map)
     else:
         pool = multiprocessing.Pool()
@@ -59,3 +60,6 @@ def update_evalutation_function(toolbox, evaluation_function, data_sets):
 def close_pool(pool) -> None:
     pool.close()
     pool.join()
+
+def do_nothing(*_) -> None:
+    pass

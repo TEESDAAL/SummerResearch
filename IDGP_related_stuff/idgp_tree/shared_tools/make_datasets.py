@@ -1,5 +1,5 @@
 import numpy as np
-BASE_PATH = "../datasets"
+BASE_PATH = "../../datasets"
 # READ_PATH = f"{BASE_PATH}/catagory_balanced_datasets"
 READ_PATH = f"{BASE_PATH}/even_datasets"
 #READ_PATH = f"{BASE_PATH}/JAFFE"

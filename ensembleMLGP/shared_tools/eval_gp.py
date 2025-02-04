@@ -110,54 +110,74 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
     # Evaluate the individuals with an invalid fitness
     #invalid_ind = [ind for ind in population if not ind.fitness.valid]
     #print(len(invalid_ind))
+    # print("start evaluation of initial Population")
     fitnesses = toolbox.map(toolbox.evaluate, population)
     for ind, fit in zip(population, fitnesses):
         ind.fitness.values = fit
+    # print("finish evaluation of initial Population")
 
+    # print("start Update hof")
     if halloffame is not None:
         halloffame.update(population)
+    # print("end Update hof")
 
+    # print("start stats")
     record = stats.compile(population) if stats else {}
+    # print("start stats")
+
+    # print("start logbook")
     logbook.record(gen=0, nevals=len(population), **record)
     if verbose:
         print(logbook.stream)
+    # print("end logbook")
 
+    # print("start val hof")
     hof2 = tools.HallOfFame(3)
     offspring_for_va = toolbox.selectElitism(population, k=1)
     hof2 = evalValidation(offspring_for_va, toolbox, hof2)
-
+    # print("end val hof")
     for gen in range(1, ngen + 1):
-
+        # print("start cloneing")
         population_for_va=[toolbox.clone(ind) for ind in population]
+        # print("end clone")
+        # print("start eval hof")
         offspring_for_va = toolbox.selectElitism(population_for_va, k=1)
         hof2 = evalValidation(offspring_for_va, toolbox, hof2)
-
-        #Select the next generation individuals by elitism
+        # print("end eval hof")
+        # #Select the next generation individuals by elitism
+        # print("start elitism")
         elitismNum=int(elitpb * len(population))
         population_for_eli=[toolbox.clone(ind) for ind in population]
         offspringE = toolbox.selectElitism(population_for_eli, k=elitismNum)
-
+        # print("end elitism")
+        # print("start selection")
         # Select the next generation individuals for crossover and mutation
         offspring = toolbox.select(population, len(population)-elitismNum)
         # Vary the pool of individuals
+        # print("varAnd")
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         # add offspring from elitism into current offspring
         #generate the next generation individuals
-
-        # Evaluate the individuals with an invalid fitness
+        # print("end selection")
+        # # Evaluate the individuals with an invalid fitness
+        # print("start eval offspring")
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
-
+        # print("end eval offspring")
         offspring[0:0]=offspringE
+        # print("add elitism offspring")
 
+        # print("update hof")
         # Update the hall of fame with the generated
         if halloffame is not None:
             halloffame.update(offspring)
 
+        # print("update pop")
         population[:] = offspring
 
+        # print("record stats")
         # Append the current generation statistics to the logbook
         record = stats.compile(population) if stats else {}
         logbook.record(gen=gen, nevals=len(offspring), **record)

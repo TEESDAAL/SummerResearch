@@ -65,8 +65,7 @@ def record_run(parameters, toolbox) -> gp.PrimitiveTree:
     print('Train time  ', train_time)
     print('Test time  ', test_time)
     print('End')
-    if not parameters.use_scoop:
-        toolbox.close_pool()
+    toolbox.close_pool()
 
     if parameters.no_record:
         return hof[0]

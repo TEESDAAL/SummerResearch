@@ -4,6 +4,8 @@ import shared_tools.gp_restrict as gp_restrict
 import numpy as np, operator, multiprocessing
 from scoop import futures
 from shared_tools.fitness_function import evaluate, error, test
+from functools import partial
+
 
 def create_toolbox(
     data_sets: dict[str, tuple[np.ndarray, np.ndarray]], pset: gp.PrimitiveSetTyped,
@@ -16,13 +18,13 @@ def create_toolbox(
 
     toolbox = base.Toolbox()
 
-    if not parameters.use_scoop:
-        pool = multiprocessing.Pool()
-        toolbox.register("parallel_map", pool.map)
-    else:
+    if parameters.use_scoop:
+        toolbox.register("close_pool", do_nothing)
         toolbox.register("parallel_map", futures.map)
-
-
+    else:
+        pool = multiprocessing.Pool()
+        toolbox.register("close_pool", partial(close_pool, pool=pool))
+        toolbox.register("parallel_map", pool.map)
 
     toolbox.register("expr", gp_restrict.genHalfAndHalfMD, pset=pset, min_=parameters.initial_min_depth, max_=parameters.initial_min_depth)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
@@ -63,4 +65,11 @@ def update_evalutation_function(toolbox, data_sets):
                      X_train=x_train, y_train=y_train,
                      X_test=x_test, y_test=y_test)
 
+def do_nothing(*_) -> None:
+    pass
+
+
+def close_pool(pool) -> None:
+    pool.close()
+    pool.join()
 
