@@ -100,7 +100,7 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
         hof, val_hof, test_error, train_error, train_time, test_time, pop
     )
 
-    with open(f"{filepath}/{parameters.seed}-run_info.pkl", 'wb') as log_file:
+    with open(f"{filepath}/{model_type}{parameters.seed}-run_info.pkl", 'wb') as log_file:
         pickle.dump(run_info, log_file)
 
 
