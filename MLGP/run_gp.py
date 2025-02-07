@@ -5,8 +5,8 @@ from dataclasses import dataclass
 import shared_tools.eval_gp as eval_gp
 from shared_tools.toolbox import create_toolbox
 from simple_pred.pset import create_pset
-
-
+from typing import Callable, Iterable
+from itertools import product
 
 def run_gp(parameters, toolbox):
     print("Creating population")
@@ -14,23 +14,33 @@ def run_gp(parameters, toolbox):
     print("Finished creating population")
 
     hof = tools.HallOfFame(1)
-    log = tools.Logbook()
-    stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values)
-    stats_size = tools.Statistics(key=len)
-    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
-    mstats.register("avg", np.mean)
-    mstats.register("std", np.std)
-    mstats.register("min", np.min)
-    mstats.register("max", np.max)
-    log.header = ["gen", "evals"] + mstats.fields
-    pop, log, hof2 =  eval_gp.eaSimple(
-        pop, toolbox, parameters.crossover, parameters.mutation,
-        parameters.elitism, parameters.generations,
-        stats=mstats, halloffame=hof, verbose=True
+
+    stats = tools.Statistics()
+    metrics = [np.min, np.max, np.mean, np.std]
+    values_to_track = [(lambda ind: ind.fitness.values, "fit"), (len, "size")]
+
+    for (key, name), metric in product(values_to_track, metrics):
+        stats.register(f"{name}_{metric.__name__}", add_stat_tracker(metric, key))
+
+    stats.register(
+        "val_min",
+        lambda population: float(toolbox.validation(min(population, key=lambda p: p.fitness.values[0]))[0])
+    )
+    stats.register(
+        "val_max",
+        lambda population: float(toolbox.validation(max(population, key=lambda p: p.fitness.values[0]))[0])
     )
 
-    return pop, log, hof, hof2
+    pop, log, val_hof =  eval_gp.eaSimple(
+        pop, toolbox, parameters.crossover, parameters.mutation,
+        parameters.elitism, parameters.generations,
+        stats=stats, hall_of_fame=hof, verbose=True
+    )
 
+    return pop, log, hof, val_hof
+
+def add_stat_tracker[T](metric: Callable[[list[T]], float], mapper: Callable[[gp.PrimitiveTree], T]) -> Callable[[list[gp.PrimitiveTree]], float]:
+    return lambda population: round(metric(list(map(mapper, population))), 5)
 
 def main(parameters, **kwargs) -> gp.PrimitiveTree:
     datasets = {
@@ -51,13 +61,13 @@ def main(parameters, **kwargs) -> gp.PrimitiveTree:
 def record_run(parameters, toolbox) -> gp.PrimitiveTree:
     begin_time = time.process_time()
 
-    pop, log, hof, hof2 = run_gp(parameters, toolbox)
+    pop, log, hof, val_hof = run_gp(parameters, toolbox)
 
 
     end_time = time.process_time()
     train_time = end_time - begin_time
 
-    best_individual = hof[0]
+    best_individual = val_hof[0]
     testResults = toolbox.test(best_individual)
     test_time = time.process_time() - end_time
     print('Best individual ', best_individual)
@@ -73,7 +83,7 @@ def record_run(parameters, toolbox) -> gp.PrimitiveTree:
     filepath = "simple_pred/data"
     run_info = RunInfo(
         "MLGP", parameters, best_individual, log,
-        hof, hof2, train_time, test_time, pop
+        hof, val_hof, train_time, test_time, pop
     )
 
     with open(f"{filepath}/{parameters.seed}-run_info.pkl", 'wb') as log_file:

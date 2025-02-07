@@ -1,6 +1,6 @@
 import random
-from deap import tools
-
+from deap import tools, base, gp
+from typing import Iterable, Optional
 
 def varAnd(population, toolbox, cxpb, mutpb):
     r"""Part of an evolutionary algorithm applying only the variation part
@@ -58,8 +58,8 @@ def varAnd(population, toolbox, cxpb, mutpb):
             i=i+1
     return offspring
 
-def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
-             halloffame=None, verbose=__debug__):
+def eaSimple(population: list[gp.PrimitiveTree], toolbox: base.Toolbox, cxpb: float, mutpb: float, elitpb: float, ngen: int, stats: tools.Statistics=None,
+             hall_of_fame: Optional[tools.HallOfFame]=None, verbose: bool=__debug__):
     r"""This algorithm reproduce the simplest evolutionary algorithm as
     presented in chapter 7 of [Back2000]_.
 
@@ -110,51 +110,38 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
     # Evaluate the individuals with an invalid fitness
     #invalid_ind = [ind for ind in population if not ind.fitness.valid]
     #print(len(invalid_ind))
-    fitnesses = toolbox.map(toolbox.evaluate, population)
-    for ind, fit in zip(population, fitnesses):
-        ind.fitness.values = fit
 
-    if halloffame is not None:
-        halloffame.update(population)
+    val_hof = tools.HallOfFame(3)
+
+    update_fitnesses(population, toolbox, hall_of_fame, val_hof)
 
     record = stats.compile(population) if stats else {}
+
     logbook.record(gen=0, nevals=len(population), **record)
     if verbose:
         print(logbook.stream)
 
-    hof2 = tools.HallOfFame(3)
-    offspring_for_va = toolbox.selectElitism(population, k=1)
-    hof2 = evalValidation(offspring_for_va, toolbox, hof2)
 
     for gen in range(1, ngen + 1):
-
         population_for_va=[toolbox.clone(ind) for ind in population]
-        offspring_for_va = toolbox.selectElitism(population_for_va, k=1)
-        hof2 = evalValidation(offspring_for_va, toolbox, hof2)
+        pop_to_validate = toolbox.selectElitism(population_for_va, k=1)
 
         #Select the next generation individuals by elitism
-        elitismNum=int(elitpb * len(population))
+        elitismNum = int(elitpb * len(population))
         population_for_eli=[toolbox.clone(ind) for ind in population]
         offspringE = toolbox.selectElitism(population_for_eli, k=elitismNum)
 
         # Select the next generation individuals for crossover and mutation
-        offspring = toolbox.select(population, len(population)-elitismNum)
+        offspring = toolbox.select(population, len(population)- elitismNum)
         # Vary the pool of individuals
         offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         # add offspring from elitism into current offspring
+        offspring[0:0]=offspringE
         #generate the next generation individuals
 
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = fit
-
-        offspring[0:0]=offspringE
-
-        # Update the hall of fame with the generated
-        if halloffame is not None:
-            halloffame.update(offspring)
+        update_fitnesses(invalid_ind, toolbox, hall_of_fame, val_hof)
 
         population[:] = offspring
 
@@ -163,14 +150,26 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
         logbook.record(gen=gen, nevals=len(offspring), **record)
         if verbose:
             print(logbook.stream)
-    return population, logbook, hof2
+    return population, logbook, val_hof
+
+def update_fitnesses(population: Iterable[gp.PrimitiveTree], toolbox: base.Toolbox, hof: Optional[tools.HallOfFame]=None, val_hof: Optional[tools.HallOfFame]=None):
+    fitnesses = toolbox.map(toolbox.evaluate, population)
+    for ind, fit in zip(population, fitnesses):
+        ind.fitness.values = fit
+
+    if hof is not None:
+        hof.update(population)
+
+    if val_hof is not None:
+        update_best_val(toolbox.clone(toolbox.selectElitism(population, k=1)), toolbox, val_hof)
 
 
-def evalValidation(offspring_for_va,toolbox,hof2):
-    fitnesses2 = toolbox.map(toolbox.validation, offspring_for_va)
-    for ind2, fit2 in zip(offspring_for_va, fitnesses2):
-        ind2.fitness.values = fit2
-        # Update the hall of fame with the generated individuals
-    if hof2 is not None:
-        hof2.update(offspring_for_va)
-    return hof2
+def update_best_val(population: list[gp.PrimitiveTree], toolbox: base.Toolbox, hall_of_fame: Optional[tools.HallOfFame]=None) -> list[gp.PrimitiveTree]:
+    fitnesses = toolbox.map(toolbox.validation, population)
+    for individual, fit in zip(population, fitnesses):
+        individual.fitness.values = fit
+
+    if hall_of_fame is not None:
+        hall_of_fame.update(population)
+
+    return population

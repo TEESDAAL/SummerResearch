@@ -75,13 +75,12 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
 
     end_time = time.process_time()
     train_time = end_time - begin_time
-    print(len(val_hof))
 
     best_individual = val_hof[0]
-    testResults = toolbox.test(best_individual)
+    test_error, train_error = toolbox.test(best_individual)
     test_time = time.process_time() - end_time
     print('Best individual ', best_individual)
-    print('Test results  ', testResults)
+    print('Test results  ', test_error)
     print('Train time  ', train_time)
     print('Test time  ', test_time)
     print('End')
@@ -95,7 +94,7 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
     filepath = "simple_pred/data"
     run_info = RunInfo(
         "IDGP_regression", parameters, best_individual, log,
-        hof, val_hof, train_time, test_time, pop
+        hof, val_hof, test_error, train_error, train_time, test_time, pop
     )
 
     with open(f"{filepath}/{parameters.seed}-run_info.pkl", 'wb') as log_file:
@@ -113,6 +112,8 @@ class RunInfo:
     log: tools.Logbook
     hall_of_fame: tools.HallOfFame
     val_hall_of_fame: tools.HallOfFame
+    test_error: float
+    train_error:  float
     train_time: float
     test_time: float
     final_population: list[gp.PrimitiveTree]

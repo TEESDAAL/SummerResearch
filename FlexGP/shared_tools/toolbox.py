@@ -4,7 +4,7 @@ import shared_tools.gp_restrict as gp_restrict
 import numpy as np, operator, multiprocessing
 from scoop import futures
 import multiprocessing.dummy
-from shared_tools.fitness_function import evaluate, test
+from shared_tools.fitness_function import evaluate, test, validate
 
 def create_toolbox(
     data_sets: dict[str, tuple[np.ndarray, np.ndarray]], pset: gp.PrimitiveSetTyped,
@@ -17,10 +17,10 @@ def create_toolbox(
     toolbox = base.Toolbox()
 
     if parameters.use_scoop:
-        toolbox.register("parallel_map", futures.map)
+        toolbox.register("map", futures.map)
     else:
-        pool = multiprocessing.Pool()
-        toolbox.register("parallel_map", pool.map)
+        pool = multiprocessing.Pool(processes=max(multiprocessing.cpu_count() - 1, 1))
+        toolbox.register("map", pool.map)
 
 
     toolbox.register("expr", gp_restrict.genHalfAndHalfMD, pset=pset, min_=parameters.initial_min_depth, max_=parameters.initial_min_depth)
@@ -48,8 +48,13 @@ def update_evalutation_function(toolbox, data_sets):
     x_train, y_train = data_sets["train"]
     x_validation, y_validation = data_sets["validation"]
     x_test, y_test = data_sets["test"]
-    toolbox.register("evaluate", evaluate, toolbox=toolbox, xs=x_train, ys=y_train, mode="train")
-    toolbox.register("validation", evaluate, toolbox=toolbox, xs=x_validation, ys=y_validation, mode="val")
+    toolbox.register("evaluate", evaluate, compiler=toolbox.compile, xs=x_train, ys=y_train, mode="train")
+
+    toolbox.register("validation", validate, toolbox=toolbox,
+        X_train=x_train, y_train=y_train,
+        X_val=x_validation, y_val=y_validation
+    )
+
     toolbox.register("test", test, toolbox=toolbox,
         X_train=x_train, y_train=y_train,
         X_test=x_test, y_test=y_test

@@ -3,7 +3,7 @@ from deap import tools
 import shared_tools.gp_restrict as gp_restrict
 import numpy as np, operator, multiprocessing
 from scoop import futures
-from shared_tools.fitness_function import evaluate, error, test
+from shared_tools.fitness_function import evaluate, validate, test
 from functools import partial
 
 
@@ -59,7 +59,11 @@ def update_evalutation_function(toolbox, data_sets):
     x_validation, y_validation = data_sets["validation"]
     x_test, y_test = data_sets["test"]
     toolbox.register("evaluate", evaluate, toolbox=toolbox, xs=x_train, ys=y_train, mode="test")
-    toolbox.register("validation", evaluate, toolbox=toolbox, xs=x_validation, ys=y_validation, mode="val")
+    toolbox.register("validation", validate,
+                     toolbox=toolbox,
+                     X_train=x_train, y_train=y_train,
+                     X_val=x_validation, y_val=y_validation)
+
     toolbox.register("test", test,
                      toolbox=toolbox,
                      X_train=x_train, y_train=y_train,

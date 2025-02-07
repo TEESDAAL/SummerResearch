@@ -1,14 +1,16 @@
-import random, time, pickle, numpy as np
-from shared_tools import toolbox
-from shared_tools.fitness_function import error
+import time, pickle, numpy as np, argparse
 from shared_tools.make_datasets import x_train, y_train, x_validation, y_validation, x_test, y_test
-from deap import algorithms, gp, tools
+from shared_tools.fitness_function import model
+from deap import algorithms, gp, tools, base
 import shared_tools.eval_gp as eval_gp
 import simple_pred.make_pset as pset
-from shared_tools.toolbox import create_toolbox, update_evalutation_function
+from shared_tools.toolbox import create_toolbox
+from dataclasses import dataclass
+from itertools import product
+from typing import Callable, Any
+
 
 def get_pset(model):
-    image_width, image_height = x_train[0].shape
     pset_dict = {
         "simple_pred": pset.pset,
     }
@@ -17,27 +19,39 @@ def get_pset(model):
 
 
 def run_gp(parameters, toolbox):
-    print("making population")
+    print("Creating population")
     pop = toolbox.population(parameters.population)
-    print("made population")
-    #toolbox.evaluate(pop)
+    print("Finished creating population")
+
     hof = tools.HallOfFame(1)
-    log = tools.Logbook()
-    stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values)
-    stats_size = tools.Statistics(key=len)
-    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
-    mstats.register("avg", np.mean)
-    mstats.register("std", np.std)
-    mstats.register("min", np.min)
-    mstats.register("max", np.max)
-    log.header = ["gen", "evals"] + mstats.fields
-    pop, log, hof2 =  eval_gp.eaSimple(
-        pop, toolbox, parameters.crossover, parameters.mutation,
-        parameters.elitism, parameters.generations,
-        stats=mstats, halloffame=hof, verbose=True
+
+    stats = tools.Statistics()
+    metrics = [np.min, np.max, np.mean, np.std]
+    values_to_track = [(lambda ind: ind.fitness.values, "fit"), (len, "size")]
+
+    for (key, name), metric in product(values_to_track, metrics):
+        stats.register(f"{name}_{metric.__name__}", add_stat_tracker(metric, key))
+
+    stats.register(
+        "val_min",
+        lambda population: float(toolbox.validation(min(population, key=lambda p: p.fitness.values[0]))[0])
+    )
+    stats.register(
+        "val_max",
+        lambda population: float(toolbox.validation(max(population, key=lambda p: p.fitness.values[0]))[0])
     )
 
-    return pop, log, hof, hof2
+    pop, log, val_hof =  eval_gp.eaSimple(
+        pop, toolbox, parameters.crossover, parameters.mutation,
+        parameters.elitism, parameters.generations,
+        stats=stats, halloffame=hof, verbose=True
+    )
+
+    return pop, log, hof, val_hof
+
+
+def add_stat_tracker[T](metric: Callable[[list[T]], float], mapper: Callable[[gp.PrimitiveTree], T]) -> Callable[[list[gp.PrimitiveTree]], float]:
+    return lambda population: round(metric(list(map(mapper, population))), 5)
 
 
 def main(parameters, **kwargs) -> gp.PrimitiveTree:
@@ -56,29 +70,53 @@ def main(parameters, **kwargs) -> gp.PrimitiveTree:
 
 
 
-def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
-    beginTime = time.process_time()
+def record_run(parameters: argparse.ArgumentParser, toolbox: base.Toolbox) -> gp.PrimitiveTree:
+    begin_time = time.process_time()
 
-    pop, log, hof, hof2 = run_gp(parameters, toolbox)
+    pop, log, hof, val_hof = run_gp(parameters, toolbox)
 
-    endTime = time.process_time()
-    trainTime = endTime - beginTime
+    end_time = time.process_time()
+    train_time = end_time - begin_time
 
-    best_individual = hof[0]
-    testResults = toolbox.test(best_individual)
-    testTime = time.process_time() - endTime
+    best_individual = val_hof[0]
+    test_error, train_error = toolbox.test(best_individual)
+    test_time = time.process_time() - end_time
     print('Best individual ', best_individual)
-    print('Test results  ', testResults)
-    print('Train time  ', trainTime)
-    print('Test time  ', testTime)
+    print('Test results  ', test_error)
+    print('Final train error ', train_error)
+    print('Train time  ', train_time)
+    print('Test time  ', test_time)
     print('End')
+    toolbox.close_pool()
 
-    if not parameters.no_record:
-        filepath = f"{parameters.model}/data"
-        pickle.dump(log, open(f"{filepath}/{parameters.seed}-{prefix}log.pkl", 'wb'))
-        pickle.dump(best_individual, open(f"{filepath}/{parameters.seed}-{prefix}best.pkl", 'wb'))
-        pickle.dump(trainTime, open(f"{filepath}/{parameters.seed}-{prefix}trainTime.pkl", 'wb'))
+    if parameters.no_record:
+        return hof[0]
+
+    filepath = "simple_pred/data"
+    run_info = RunInfo(
+        "FLEXGP", model(), parameters, best_individual, log,
+        hof, val_hof, test_error, train_error, train_time, test_time, pop
+    )
+
+    with open(f"{filepath}/{parameters.seed}-run_info.pkl", 'wb') as log_file:
+        pickle.dump(run_info, log_file)
 
 
     return hof[0]
+
+
+@dataclass
+class RunInfo:
+    model: str
+    wrapper_model: Any
+    parameters: argparse.ArgumentParser
+    best_individual: gp.PrimitiveTree
+    log: tools.Logbook
+    hall_of_fame: tools.HallOfFame
+    val_hall_of_fame: tools.HallOfFame
+    test_error: float
+    train_error: float
+    train_time: float
+    test_time: float
+    final_population: list[gp.PrimitiveTree]
 

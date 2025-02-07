@@ -20,7 +20,6 @@ def evaluate(individual: gp.PrimitiveTree, toolbox: base.Toolbox, xs: np.ndarray
     global cache_hits
     key = str(individual) + mode
     if key in cache:
-        cache_hits += 1
         return cache[key],
 
     features = np.array(list(toolbox.parallel_map(
@@ -60,15 +59,22 @@ def model():
         MultiOutputRegressor(LinearSVR(dual=False, loss="squared_epsilon_insensitive", random_state=0))
     )
 
+def validate(
+        individual: gp.PrimitiveTree,
+        toolbox: base.Toolbox,
+        X_train: np.ndarray, y_train: np.ndarray,
+        X_val: np.ndarray, y_val: np.ndarray
+    ) -> tuple[float]:
+    val_error, _ = test(individual, toolbox, X_train, y_train, X_test=X_val, y_test=y_val)
+    return val_error,
 
 def test(
         individual: gp.PrimitiveTree,
         toolbox: base.Toolbox,
         X_train: np.ndarray, y_train: np.ndarray,
         X_test: np.ndarray, y_test: np.ndarray
-    ):
-    global cache_hits
-    print(f"There were {cache_hits} cache hits")
+    ) -> tuple[float, float]:
+    """Train the final model, returns a tuple of the (test_error, train_error)"""
     train_features = np.array(list(toolbox.parallel_map(
         partial(extract_features, individual=individual, compiler=toolbox.compile),
         X_train
@@ -80,9 +86,7 @@ def test(
     predictor = model()
     predictor.fit(train_features, y_train)
 
-
-    print(f"Final train error: {error(predictor.predict(train_features), y_train)}")
-    return error(predictor.predict(test_features), y_test)
+    return error(predictor.predict(test_features), y_test), error(predictor.predict(train_features), y_train)
 
 
 def error(pred, truth) -> float:
