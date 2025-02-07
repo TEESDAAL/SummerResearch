@@ -4,6 +4,7 @@ from deap import algorithms, gp, tools
 import shared_tools.eval_gp as eval_gp
 import simple_pred.function_set as simple_fs
 from shared_tools.toolbox import create_toolbox
+from shared_tools.fitness_function import model
 from dataclasses import dataclass
 from itertools import product
 from typing import Callable
@@ -81,6 +82,7 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
     test_time = time.process_time() - end_time
     print('Best individual ', best_individual)
     print('Test results  ', test_error)
+    print('Final train_error', train_error)
     print('Train time  ', train_time)
     print('Test time  ', test_time)
     print('End')
@@ -92,8 +94,9 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
         return hof[0]
 
     filepath = "simple_pred/data"
+    model_type = "IDGP_LinearSVR"
     run_info = RunInfo(
-        "IDGP_regression", parameters, best_individual, log,
+        model_type, model(), parameters, best_individual, log,
         hof, val_hof, test_error, train_error, train_time, test_time, pop
     )
 
@@ -106,7 +109,8 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
 
 @dataclass
 class RunInfo:
-    model: str
+    model_type: str
+    model: "SklearnModel"
     parameters: argparse.ArgumentParser
     best_individual: gp.PrimitiveTree
     log: tools.Logbook
