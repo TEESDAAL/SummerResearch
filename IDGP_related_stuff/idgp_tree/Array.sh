@@ -1,8 +1,7 @@
 run=30
-models=( 'simple_pred' )
+models=('simple_pred')
 
-for model in "${models[@]}"
-do
-    echo $model
-    qsub -t 1-$run:1 Job.sh $model
+for model in "${models[@]}"; do
+  echo $model
+  qsub -t 1-$run:1 idgp.sh $model
 done
