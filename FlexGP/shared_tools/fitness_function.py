@@ -63,11 +63,11 @@ def test(
         X_test: np.ndarray, y_test: np.ndarray
     ) -> tuple[float, float]:
     """Train the final model, returns a tuple of the (test_error, train_error)"""
-    train_features = np.array(list(toolbox.parallel_map(
+    train_features = np.array(list(toolbox.map(
         partial(extract_features, individual=individual, compiler=toolbox.compile),
         X_train
     )))
-    test_features = np.array(list(toolbox.parallel_map(
+    test_features = np.array(list(toolbox.map(
         partial(extract_features, individual=individual, compiler=toolbox.compile),
         X_test
     )))

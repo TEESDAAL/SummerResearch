@@ -93,12 +93,13 @@ def record_run(parameters: argparse.ArgumentParser, toolbox: base.Toolbox) -> gp
         return hof[0]
 
     filepath = "simple_pred/data"
+    model_type = "FLEXGP_RF"
     run_info = RunInfo(
-        "FLEXGP", model(), parameters, best_individual, log,
+        model_type, model(), parameters, best_individual, log,
         hof, val_hof, test_error, train_error, train_time, test_time, pop
     )
 
-    with open(f"{filepath}/{parameters.seed}-run_info.pkl", 'wb') as log_file:
+    with open(f"{filepath}/{model_type}{parameters.seed}-run_info.pkl", 'wb') as log_file:
         pickle.dump(run_info, log_file)
 
 
