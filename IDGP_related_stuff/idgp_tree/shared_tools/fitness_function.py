@@ -6,6 +6,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import KFold
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import LinearSVR, SVR
 from functools import partial
 
@@ -56,7 +57,9 @@ def extract_features(image, individual, compiler) -> list[float]:
 def model():
     return make_pipeline(
         MinMaxScaler(),
-        MultiOutputRegressor(LinearSVR(dual=False, loss="squared_epsilon_insensitive", random_state=0))
+        # MultiOutputRegressor(LinearSVR(dual=False, loss="squared_epsilon_insensitive", random_state=0))
+        RandomForestRegressor()
+        #DecisionTreeRegressor(max_depth=7)
     )
 
 def validate(

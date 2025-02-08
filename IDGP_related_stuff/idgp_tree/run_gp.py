@@ -94,7 +94,7 @@ def record_run(parameters, toolbox, prefix="") -> gp.PrimitiveTree:
         return hof[0]
 
     filepath = "simple_pred/data"
-    model_type = "IDGP_LinearSVR"
+    model_type = "IDGP_RF"
     run_info = RunInfo(
         model_type, model(), parameters, best_individual, log,
         hof, val_hof, test_error, train_error, train_time, test_time, pop

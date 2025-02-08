@@ -43,8 +43,10 @@ def evaluate(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree]
 
 def model():
     return make_pipeline(
-        StandardScaler(),
+        MinMaxScaler(),
         RandomForestRegressor(random_state=0)
+        #MultiOutputRegressor(LinearSVR(random_state=0))
+        #DecisionTreeRegressor(random_state=0, max_depth=7)
     )
 
 def validate(

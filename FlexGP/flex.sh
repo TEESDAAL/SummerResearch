@@ -35,4 +35,4 @@ homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/FlexGP'
 
 cd $homeDir
 
-python main -s $SGE_TASK_ID -p 100 -g 75
+python main.py -s $SGE_TASK_ID -p 50 -g 50
