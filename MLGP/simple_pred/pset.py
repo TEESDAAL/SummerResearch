@@ -26,6 +26,7 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     for func in binary_operators:
         pset.addPrimitive(func, [float, float], float)
 
+    pset.addPrimitive(partial(operator.mul, -1), [float], float, name="neg")
     image_processing_layer = [
         (hist_equal, 'Hist_Eq'), (gaussian_1, 'Gau1'), (gaussian_11, 'Gau11'),
         (gauGM, 'GauXY'), (laplace, 'Lap'), (sobel_x, 'Sobel_X'),

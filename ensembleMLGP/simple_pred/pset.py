@@ -13,12 +13,12 @@ from simple_pred.data_types import Ensemble, Img, X, Y, Size, Region, Prediction
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset = gp.PrimitiveSetTyped('MAIN', [Img], Ensemble)
 
-    for ensemble_size in [3, 5, 7, 10]:
+    for ensemble_size in [3, 5]:
         pset.addPrimitive(mean, [Prediction]*ensemble_size, Ensemble, name=f"mean{ensemble_size}")
 
     # Concatination layer
     pset.addPrimitive(combine, [float, float], Prediction, name="combine")
-
+    pset.addPrimitive(partial(operator.mul, -1), [float], float, name="negate")
 
     feature_construction_layer = [np.std, np.mean]
     for func in feature_construction_layer:

@@ -1,7 +1,7 @@
 from deap import base, creator, gp
 from deap import tools
 import shared_tools.gp_restrict as gp_restrict
-import numpy as np
+import numpy as np, operator
 from scoop import futures
 import multiprocessing
 from shared_tools.fitness_function import evaluate
@@ -45,6 +45,8 @@ def create_toolbox(
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mut", gp_restrict.genFull, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
+    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=parameters.max_depth))
+    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=parameters.max_depth))
 
     return toolbox
 

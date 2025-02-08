@@ -134,7 +134,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
         hof2 = evalValidation(offspring_for_va, toolbox, hof2)
 
         #Select the next generation individuals by elitism
-        elitismNum=int(elitpb * len(population))
+        elitismNum = int(elitpb * len(population))
         population_for_eli=[toolbox.clone(ind) for ind in population]
         offspringE = toolbox.selectElitism(population_for_eli, k=elitismNum)
 
@@ -170,7 +170,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
 
 
 def evalValidation(offspring_for_va,toolbox,hof2):
-    fitnesses2 = toolbox.map(toolbox.validation, offspring_for_va)
+    fitnesses2 = [toolbox.validation(o) for o in offspring_for_va]
     for ind2, fit2 in zip(offspring_for_va, fitnesses2):
         ind2.fitness.values = fit2
         # Update the hall of fame with the generated individuals

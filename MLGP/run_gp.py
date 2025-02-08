@@ -68,29 +68,29 @@ def record_run(parameters, toolbox) -> gp.PrimitiveTree:
     train_time = end_time - begin_time
 
     best_individual = val_hof[0]
-    testResults = toolbox.test(best_individual)
+    test_results = toolbox.test(best_individual)
     test_time = time.process_time() - end_time
     print('Best individual ', best_individual)
-    print('Test results  ', testResults)
+    print('Test results  ', test_results)
     print('Train time  ', train_time)
     print('Test time  ', test_time)
     print('End')
     toolbox.close_pool()
 
     if parameters.no_record:
-        return hof[0]
+        return best_individual
 
     filepath = "simple_pred/data"
     run_info = RunInfo(
         "MLGP", parameters, best_individual, log,
-        hof, val_hof, train_time, test_time, pop
+        hof, val_hof, test_results, train_time, test_time, pop
     )
 
     with open(f"{filepath}/{parameters.seed}-run_info.pkl", 'wb') as log_file:
         pickle.dump(run_info, log_file)
 
 
-    return hof[0]
+    return best_individual
 
 
 @dataclass
@@ -101,6 +101,7 @@ class RunInfo:
     log: tools.Logbook
     hall_of_fame: tools.HallOfFame
     val_hall_of_fame: tools.HallOfFame
+    test_error: float
     train_time: float
     test_time: float
     final_population: list[gp.PrimitiveTree]

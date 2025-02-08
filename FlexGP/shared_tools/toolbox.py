@@ -1,10 +1,12 @@
 from deap import base, creator, gp
 from deap import tools
 import shared_tools.gp_restrict as gp_restrict
-import numpy as np, operator, multiprocessing
+import numpy as np, multiprocessing
 from scoop import futures
 import multiprocessing.dummy
 from shared_tools.fitness_function import evaluate, test, validate
+from functools import partial
+
 
 def create_toolbox(
     data_sets: dict[str, tuple[np.ndarray, np.ndarray]], pset: gp.PrimitiveSetTyped,
@@ -17,10 +19,12 @@ def create_toolbox(
     toolbox = base.Toolbox()
 
     if parameters.use_scoop:
+        toolbox.register("close_pool", do_nothing)
         toolbox.register("map", futures.map)
     else:
         pool = multiprocessing.Pool(processes=max(multiprocessing.cpu_count() - 1, 1))
         toolbox.register("map", pool.map)
+        toolbox.register("close_pool", partial(close_pool, pool=pool))
 
 
     toolbox.register("expr", gp_restrict.genHalfAndHalfMD, pset=pset, min_=parameters.initial_min_depth, max_=parameters.initial_min_depth)
@@ -59,3 +63,11 @@ def update_evalutation_function(toolbox, data_sets):
         X_train=x_train, y_train=y_train,
         X_test=x_test, y_test=y_test
     )
+
+
+def do_nothing(*_) -> None:
+    pass
+
+def close_pool(pool) -> None:
+    pool.close()
+    pool.join()

@@ -18,6 +18,7 @@ parser.add_argument('-t', '--tournament-size', default=params.tournament_size, h
 parser.add_argument('-ps', '--parsimony-size', default=params.parsimony_size, help=f"The number of individuals to participate in the selection tournament [1, 2], defaults to {params.parsimony_size}.", type=float)
 parser.add_argument('-imin', '--initial-min-depth', default=params.initialMinDepth, help=f"The initial minimum depth to construct a tree, defaults to {params.initialMinDepth}")
 parser.add_argument('-imax', '--initial-max-depth', default=params.initialMaxDepth, help=f"The initial minimum depth to construct a tree, defaults to {params.initialMaxDepth}")
+parser.add_argument('-max', '--max_depth', default=params.maxDepth, help=f"The true max depth to construct a tree, defaults to {params.maxDepth}")
 parser.add_argument('--no-record', action='store_true', help="a keyword argument that can be passed in to not record the run.")
 parser.add_argument('--use-scoop', action='store_true', help="a keyword argument that can be passed in to use scoop instead of the normal multithreading library.")
 

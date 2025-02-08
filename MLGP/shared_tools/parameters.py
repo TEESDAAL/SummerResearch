@@ -7,8 +7,8 @@ mutProb = 0.19
 elitismProb = 0.01
 totalRuns = 1
 initialMinDepth = 3
-initialMaxDepth = 15
-maxDepth = 20
+initialMaxDepth = 16
+maxDepth = 35
 #image_width, image_height = x_train[0].shape
 
 tournament_size = 7
