@@ -70,7 +70,8 @@ class Tree:
     def _display_result(self, graph):
         if self.function.arity == 0 and "ARG" not in self.function.name:
             return
-        if isinstance(self._result, np.ndarray):
+
+        if Tree.should_render_as_img(self._result):
             graph.add_node(f"{self.id()}result", image=f'_treedata/{self.id()}.png', label="", imagescale=True, fixedsize=True, shape="plaintext", width=2, height=2)
         else:
             graph.add_node(f"{self.id()}result", label=f"{self._result}", shape="plaintext")
@@ -82,7 +83,7 @@ class Tree:
     def _evaluate_all_nodes(self, *args) -> Any:
         self._result = self.compile()(*args)
 
-        if isinstance(self._result, np.ndarray):
+        if Tree.should_render_as_img(self._result):
             os.makedirs("_treedata", exist_ok=True)
             show_img(self._result, '', save_to=f'_treedata/{self.id()}.png')
 
@@ -102,3 +103,10 @@ class Tree:
 
     def nodes(self) -> list["Tree"]:
         return [self] + sum((child.nodes() for child in self.children), [])
+
+
+    @staticmethod
+    def should_render_as_img(value: Any) -> bool:
+        return isinstance(value, np.ndarray) and len(value.shape) == 2
+
+
