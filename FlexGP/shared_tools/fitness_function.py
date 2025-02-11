@@ -1,6 +1,6 @@
+import numpy as np, time
 from deap import gp, base
 from typing import Callable, Iterable
-import numpy as np
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import KFold
@@ -20,20 +20,26 @@ def evaluate(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree]
     key = str(individual) + mode
     if key in cache:
         return cache[key],
-
+    print(individual)
+    start_time = time.process_time()
     feature_extractor = compiler(individual)
     features = np.array([feature_extractor(img) for img in xs])
-
+    print("Feature extraction time:", time.process_time() - start_time)
     n_splits = 5
 
     errors = []
-    for train_index, test_index in KFold(n_splits=n_splits).split(features):
+    start_time = time.process_time()
+    for i, (train_index, test_index) in enumerate(KFold(n_splits=n_splits).split(features)):
+        fold_start_time = time.process_time()
         X_train, X_test = features[train_index], features[test_index]
         y_train, y_test = ys[train_index], ys[test_index]
-
+        print(len(X_train[0]))
         predictor = model()
         predictor.fit(X_train, y_train)
         errors.append(error(predictor.predict(X_test), y_test))
+        print(f"Fold {i} time:", time.process_time() - fold_start_time)
+    print("Total train time:", time.process_time() - start_time )
+
 
     mean_error = sum(errors) / n_splits
     cache[key] = mean_error
