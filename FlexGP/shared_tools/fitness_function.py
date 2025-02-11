@@ -20,6 +20,7 @@ def evaluate(individual: gp.PrimitiveTree, compiler: Callable[[gp.PrimitiveTree]
     key = str(individual) + mode
     if key in cache:
         return cache[key],
+
     feature_extractor = compiler(individual)
     features = np.array([feature_extractor(img) for img in xs])
 
