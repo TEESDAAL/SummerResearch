@@ -28,7 +28,7 @@ class Tree[T]:
     function: TreeNode
     children: list["Tree[Any]"]
     pset: gp.PrimitiveSetTyped
-    _result: Optional[T] = None
+    value: Optional[T] = None
 
 
     def __repr__(self) -> str:
@@ -41,11 +41,11 @@ class Tree[T]:
         return str(id(self))
 
     def _evaluate_all_nodes(self, *args) -> Any:
-        self._result = self.compile()(*args)
+        self.value = self.compile()(*args)
 
-        if isinstance(self._result, np.ndarray):
+        if is_image(self.value):
             os.makedirs("_treedata", exist_ok=True)
-            show_img(self._result, '', save_to=f'_treedata/{self.id()}.png')
+            show_img(self.value, '', save_to=f'_treedata/{self.id()}.png')
 
 
         for child in self.children:
@@ -67,12 +67,14 @@ class Tree[T]:
 
 @dataclass
 class TreeDrawer:
-    drawer: list[tuple[Callable[[Any], bool], Callable[[pgv.AGraph, Tree], None]]] = field(default_factory=list)
+    drawer: list[tuple[Callable[[Tree], bool], Callable[[pgv.AGraph, Tree], None]]] = field(default_factory=list)
 
     def __post_init__(self):
-        self.register_draw_function(lambda t: is_image(t), draw_image)
+        self.drawer = []
+        self.register_draw_function(lambda t: is_image(t.value), draw_image)\
+        .register_draw_function(lambda t: t.function.arity == 0 and "ARG" not in t.function.name, lambda *_: None)
 
-    def register_draw_function(self, predicate: Callable[[T], bool], draw_function: Callable) -> Self:
+    def register_draw_function(self, predicate: Callable[[Tree], bool], draw_function: Callable) -> Self:
         self.drawer.append((predicate, draw_function))
         return self
 
@@ -99,29 +101,27 @@ class TreeDrawer:
         else:
             graph.add_node(tree.id(), label=tree.function.name)
 
-        self._display_result(tree, graph)
+        self._displayvalue(tree, graph)
 
         for child in tree.children:
-            self._populate_graph(tree, graph)
+            self._populate_graph(child, graph)
             graph.add_edge(tree.id(), child.id(), dir="back")
 
-    def _display_result(self, tree: Tree, graph: pgv.AGraph) -> None:
-        # Ignore terminals that aren't the input
-
-        if tree.function.arity == 0 and "ARG" not in tree.function.name:
-            return
-
+    def _displayvalue(self, tree: Tree, graph: pgv.AGraph) -> None:
         for predicate, draw_function in self.drawer:
-            if predicate(tree._result):
+            if predicate(tree):
                 draw_function(graph, tree)
                 break
         else:
-            graph.add_node(f"{tree.id()}result", label=f"{tree._result}", shape="plaintext")
+            graph.add_node(f"{tree.id()}result", label=f"{tree.value}", shape="plaintext")
+
+        if not graph.has_node(f"{tree.id()}result"):
+            return None
 
         graph.add_edge(tree.id(), f"{tree.id()}result", style="invis", dir="both")
 
-        B = graph.add_subgraph([tree.id(),f"{tree.id()}result"],name=f"{tree.id()}-resultholder")
-        B.graph_attr['rank']='same'
+        result_holder = graph.add_subgraph([tree.id(),f"{tree.id()}result"], name=f"{tree.id()}-resultholder")
+        result_holder.graph_attr['rank']='same'
 
 
 def is_image(value: Any) -> bool:
