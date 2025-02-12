@@ -4,7 +4,7 @@ import shared_tools.gp_restrict as gp_restrict
 import numpy as np
 from scoop import futures
 import multiprocessing
-from shared_tools.fitness_function import evaluate
+from shared_tools.fitness_function import evaluate, validate, test
 from functools import partial
 
 def create_toolbox(
@@ -52,10 +52,17 @@ def update_evalutation_function(toolbox, evaluation_function, data_sets):
     x_train, y_train = data_sets["train"]
     x_validation, y_validation = data_sets["validation"]
     x_test, y_test = data_sets["test"]
-    toolbox.register("evaluate", evaluation_function, toolbox=toolbox, xs=x_train, ys=y_train)
-    toolbox.register("validation", evaluation_function, toolbox=toolbox, xs=x_validation, ys=y_validation)
-    toolbox.register("test", evaluation_function, toolbox=toolbox, xs=x_test, ys=y_test)
+    toolbox.register("evaluate", evaluate, toolbox=toolbox, xs=x_train, ys=y_train, mode="train")
 
+    toolbox.register("validation", validate, toolbox=toolbox,
+        X_train=x_train, y_train=y_train,
+        X_val=x_validation, y_val=y_validation
+    )
+
+    toolbox.register("test", test, toolbox=toolbox,
+        X_train=x_train, y_train=y_train,
+        X_test=x_test, y_test=y_test
+    )
 def close_pool(pool) -> None:
     pool.close()
     pool.join()
