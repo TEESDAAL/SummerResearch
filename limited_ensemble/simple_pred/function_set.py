@@ -73,8 +73,8 @@ def rect_region(image: image, x: int, y: int, width: int, height: int) -> image:
     return image[y:y_end, x:x_end]
 
 
-def combine(a: float, b: float) -> prediction:
-    return a, b
+def to_array(*args) -> np.ndarray:
+    return np.array(list(args))
 
 
 def safe_div(a: float, b: float) -> float:

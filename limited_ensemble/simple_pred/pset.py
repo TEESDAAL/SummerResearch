@@ -4,23 +4,20 @@ from deap import gp
 from functools import partial
 from simple_pred.function_set import (
     hist_equal, gaussian_1, gaussian_11, gauGM, laplace, sobel_x, sobel_y,
-    gaussian_Laplace1, gaussian_Laplace2, lbp, hog_feature, safe_div,
-    square_region, rect_region, combine, mean
+    gaussian_Laplace1, gaussian_Laplace2, lbp, hog_feature,
+    square_region, rect_region, to_array
 )
 
 from simple_pred.data_types import (
-    Ensemble, Img, X, Y, Size, Region, Region1, Region2, Region3, Prediction,
+    Ensemble, Img, X, Y, Size, Region, Region1, Region2, Region3,
 )
 
 
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset = gp.PrimitiveSetTyped('MAIN', [Img], Ensemble)
 
-    for ensemble_size in [3, 5, 7, 10]:
-        pset.addPrimitive(mean, [Prediction]*ensemble_size, Ensemble, name=f"mean{ensemble_size}")
-
-    # Concatination layer
-    pset.addPrimitive(combine, [float, float], Prediction, name="combine")
+    for ensemble_size in [3, 5, 7, 10, 15]:
+        pset.addPrimitive(to_array, [float]*ensemble_size, Ensemble, name=f"combine{ensemble_size}")
 
 
     feature_construction_layer = [np.std, np.mean]
