@@ -20,10 +20,10 @@ def create_toolbox(
 
     if parameters.use_scoop:
         toolbox.register("close_pool", do_nothing)
-        toolbox.register("map", futures.map)
+        toolbox.register("parallel_map", futures.map)
     else:
         pool = multiprocessing.Pool()
-        toolbox.register("map", pool.map)
+        toolbox.register("parallel_map", pool.map)
         toolbox.register("close_pool", partial(close_pool, pool=pool))
 
 
