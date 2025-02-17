@@ -93,7 +93,7 @@ def record_run(parameters: argparse.ArgumentParser, toolbox: base.Toolbox) -> gp
         return hof[0]
 
     filepath = "simple_pred/data"
-    model_type = "FLEXGP_RF"
+    model_type = "COGP_RF"
     run_info = RunInfo(
         model_type, model(), parameters, best_individual, log,
         hof, val_hof, test_error, train_error, train_time, test_time, pop

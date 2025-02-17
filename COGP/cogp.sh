@@ -31,7 +31,7 @@ else
 fi
 
 model=$1
-homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/FlexGP'
+homeDir='/vol/grid-solar/sgeusers/teesdaalan/SummerResearch/COGP'
 
 cd $homeDir
 

@@ -54,9 +54,9 @@ def train_then_test_model(train_test_indicies, xs, ys) -> float:
 def model():
     return make_pipeline(
         MinMaxScaler(),
-        PCA(n_components=10),
-        LinearRegression()
-        #RandomForestRegressor(random_state=0)
+        #PCA(n_components=10),
+        #LinearRegression()
+        RandomForestRegressor(random_state=0)
         #MultiOutputRegressor(LinearSVR(random_state=0))
         #DecisionTreeRegressor(random_state=0, max_depth=7)
     )
