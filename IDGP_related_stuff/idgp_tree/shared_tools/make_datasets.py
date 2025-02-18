@@ -11,3 +11,11 @@ y_validation = np.load(f"{READ_PATH}/y_val.npy")
 x_test = np.load(f"{READ_PATH}/x_test.npy") / 255
 y_test = np.load(f"{READ_PATH}/y_test.npy")
 
+
+if __name__ == '__main__':
+    print("x_train: ", len(x_train))
+    print("y_train: ", len(y_train))
+    print("x_val: ", len(x_validation))
+    print("y_val: ", len(y_validation))
+    print("x_test: ", len(x_test))
+    print("y_test: ", len(y_test))
