@@ -1,34 +1,67 @@
 from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, TypeVar, Self, Optional
+from typing import Any, Callable, Self, Optional
 from deap import gp
-import pygraphviz as pgv, os, numpy as np
+import pygraphviz as pgv, os, numpy as np, numpy.typing as npt
 from matplotlib import pyplot as plt
+import PIL.Image
+
+type TreeNode = gp.Primitive | gp.Terminal
+type image = npt.ArrayLike | PIL.Image.Image
 
 
-TreeNode = gp.Primitive | gp.Terminal
-
-def show_img(img, title, save_to=None):
-    plt.imshow(img, cmap="gray")
-    plt.colorbar()
-    if save_to is None:
-        plt.title(title)
-        plt.show()
-    else:
-        plt.savefig(save_to, bbox_inches='tight')
-        plt.close()
-
-# Define a type variable
-T = TypeVar('T')
 @dataclass
-class Box(Generic[T]):
+class Box[T]:
+    """
+    A mutable holder of some value
+    Attributes
+    ----------
+    value : T
+        Some value of the generic type T
+    """
     value: T
 
 @dataclass
 class Tree[T]:
+    """
+    A tree representation of a given deap GP model
+
+    Attributes
+    ----------
+    function : gp.Primitive | gp.Terminal
+        The "node" in the tree, is either a function to call with the children as arguments, or a terminal.
+    children : list[Tree]
+        The children of this node.
+    pset : gp.PrimitiveSetTyped
+        The pset that this exists in the context of.
+    value : Optional[T]
+        The value of this tree after a given input (starts as none, will get set when this node is evaluated on some input)
+    """
     function: TreeNode
-    children: list["Tree[Any]"]
+    children: list["Tree"]
     pset: gp.PrimitiveSetTyped
     value: Optional[T] = None
+
+    @staticmethod
+    def of(model: list[TreeNode], pset: gp.PrimitiveSetTyped) -> 'Tree':
+        """
+        Save the graph visualization of the
+
+        Parameters
+        ----------
+        img : npt.ArrayLike | PIL.Image.Image
+            The image to display, can be anything renderable by pyplot imshow.
+        save_to : str
+            The filepath to save to
+        title : str
+            The title to give the image, empty by default
+        """
+        return Tree.construct_tree(model, pset, Box(0))
+
+    @staticmethod
+    def construct_tree(model: list[TreeNode], pset: gp.PrimitiveSetTyped, index: Box[int]) -> "Tree":
+        function = model[index.value]
+        index.value += 1
+        return Tree(function, [Tree.construct_tree(model, pset, index) for _ in range(function.arity)], pset)
 
 
     def __repr__(self) -> str:
@@ -43,23 +76,8 @@ class Tree[T]:
     def _evaluate_all_nodes(self, *args) -> Any:
         self.value = self.compile()(*args)
 
-        if is_image(self.value):
-            os.makedirs("_treedata", exist_ok=True)
-            show_img(self.value, '', save_to=f'_treedata/{self.id()}.png')
-
-
         for child in self.children:
             child._evaluate_all_nodes(*args)
-
-    @staticmethod
-    def construct_tree(model: list[TreeNode], pset: gp.PrimitiveSetTyped, index: Box[int]) -> "Tree":
-        function = model[index.value]
-        index.value += 1
-        return Tree(function, [Tree.construct_tree(model, pset, index) for _ in range(function.arity)], pset)
-
-    @staticmethod
-    def of(model: list[TreeNode], pset: gp.PrimitiveSetTyped) -> "Tree":
-        return Tree.construct_tree(model, pset, Box(0))
 
     def nodes(self) -> list["Tree"]:
         return [self] + sum((child.nodes() for child in self.children), [])
@@ -67,18 +85,73 @@ class Tree[T]:
 
 @dataclass
 class TreeDrawer:
-    drawer: list[tuple[Callable[[Tree], bool], Callable[[pgv.AGraph, Tree], None]]] = field(default_factory=list)
+    drawing_method: list[tuple[Callable[[Tree], bool], Callable[[pgv.AGraph, Tree], None]]] = field(default_factory=list)
 
     def __post_init__(self):
-        self.drawer = []
-        self.register_draw_function(lambda t: is_image(t.value), draw_image)\
+        self.drawing_method = []
+        self\
+        .register_draw_function(lambda _: True, lambda g, t: draw_text(g, t, str(t.value)))\
+        .register_draw_function(lambda t: is_image(t.value), draw_image)\
         .register_draw_function(lambda t: t.function.arity == 0 and "ARG" not in t.function.name, lambda *_: None)
 
-    def register_draw_function(self, predicate: Callable[[Tree], bool], draw_function: Callable) -> Self:
-        self.drawer.append((predicate, draw_function))
+    def clear_set_drawing_methods(self) -> Self:
+        """
+        Clear the preset drawing methods.
+
+        Returns
+        -------
+            Itself but with the drawing methods cleared (so it can be used inline).
+        """
+        self.drawing_method = []
         return self
 
+    def register_draw_function(self, predicate: Callable[[Tree], bool], draw_function: Callable[[pgv.AGraph, Tree], None]) -> Self:
+        """
+        Register a new draw method.
+        The newest draw function will take precidence before the old one, and only one will get called.
+
+        Parameters
+        ----------
+        predicate : Callable[[Tree], bool]
+            The trigger for when to run this draw function, when the predicate returns true, the draw function is called
+
+        draw_function : Callable[[pgv.AGraph, Tree], None]]
+            The used to draw the given result
+
+        Returns
+        -------
+            Itself but with a new drawing methods (so it can be used inline).
+        """
+        self.drawing_method.insert(0, (predicate, draw_function))
+        return self
+
+    def save_graph(self, file: str, tree: Tree, *args: Any) -> None:
+        """
+        Save the graph visualization of this tree for a given input(s).
+
+        Parameters
+        ----------
+        file : str
+            The filepath to save to.
+        tree : Tree
+             The tree to convert into a graph.
+        *args : Any
+            The arguments to pass into the tree to visualize.
+        """
+        self.get_graph(tree, *args).draw(file)
+
+
     def get_graph(self, tree: Tree, *args: Any) -> pgv.AGraph:
+        """
+        Get the graph visualization of this tree for a given input(s).
+
+        Parameters
+        ----------
+        tree : Tree
+             The tree to convert into a graph.
+        *args : Any
+            The arguments to pass into the tree to visualize.
+        """
         tree._evaluate_all_nodes(*args)
 
         graph = pgv.AGraph(strict=False, directed=True)
@@ -90,10 +163,6 @@ class TreeDrawer:
         self._populate_graph(tree, graph)
         graph.layout(prog="dot")
         return graph
-
-    def save_graph(self, file: str, *args) -> None:
-        self.get_graph(*args).draw(file)
-
 
     def _populate_graph(self, tree: Tree, graph: pgv.AGraph) -> None:
         if tree.function.arity == 0:
@@ -108,13 +177,15 @@ class TreeDrawer:
             graph.add_edge(tree.id(), child.id(), dir="back")
 
     def _displayvalue(self, tree: Tree, graph: pgv.AGraph) -> None:
-        for predicate, draw_function in self.drawer:
-            if predicate(tree):
-                draw_function(graph, tree)
-                break
+        for predicate, draw_function in self.drawing_method:
+            try:
+                if predicate(tree):
+                    draw_function(graph, tree)
+                    break
+            except Exception as e:
+                print(e)
         else:
-            graph.add_node(f"{tree.id()}result", label=f"{tree.value}", shape="plaintext")
-
+            draw_text(graph, tree, str(tree.value))
         if not graph.has_node(f"{tree.id()}result"):
             return None
 
@@ -124,8 +195,93 @@ class TreeDrawer:
         result_holder.graph_attr['rank']='same'
 
 
-def is_image(value: Any) -> bool:
-    return isinstance(value, np.ndarray) and len(value.shape) == 2
+def show_img(img: image, title: str='') -> None:
+    """
+    Display an image to using matplotlib, it renders with a colorbar to show pixel value range
+    (as matplotlib automatically scales the image brightness).
 
-def draw_image(graph: pgv.AGraph, tree: Tree):
+    Parameters
+    ----------
+    img : npt.ArrayLike | PIL.Image.Image
+        The image to display, can be anything renderable by pyplot imshow.
+    title : str
+        The title to give the image, empty by default
+    """
+    plt.imshow(img, cmap="gray")
+    plt.colorbar()
+    plt.title(title)
+    plt.show()
+
+
+def save_img(img: image, save_to: str, title: str='') -> None:
+    """
+    Display an image to using matplotlib, it renders with a colorbar to show pixel value range
+    (as matplotlib automatically scales the image brightness).
+
+    Parameters
+    ----------
+    img : npt.ArrayLike | PIL.Image.Image
+        The image to display, can be anything renderable by pyplot imshow.
+    save_to : str
+        The filepath to save to
+    title : str
+        The title to give the image, empty by default
+    """
+    plt.imshow(img, cmap="gray")
+    plt.colorbar()
+    plt.title(title)
+    plt.savefig(save_to, bbox_inches='tight')
+    plt.close()
+
+
+def is_image(value: Any) -> bool:
+    """
+    Return true if the given value should be rendered as an image (if it is an 2D numpy array or an Image type)
+
+    Parameters
+    ----------
+    value : Any
+        The value to check if it is an image
+
+    Returns
+    -------
+        True if it meets this opinionated condition for being rendered as an image.
+    """
+
+    return isinstance(value, PIL.Image.Image) or isinstance(value, np.ndarray) and len(value.shape) == 2
+
+def draw_image(graph: pgv.AGraph, tree: Tree[image]) -> None:
+    """
+    Add an image to the to the given graph with an id of f"{tree.id()}result".
+
+    Parameters
+    ----------
+    graph : pgv.AGraph
+        The graph to add a node to.
+    tree : Tree[image]
+        The tree to get the image to draw from.
+    """
+    if tree.value is None:
+        raise ValueError("Tried to draw an image for a tree which has not been evaluated.\nMake sure to use `TreeDrawer().get_graph(tree, ...)`, or `tree._evaluate_all_nodes(...)` before running this.")
+
+    save_img(tree.value, save_to=f'_treedata/{tree.id()}.png')
+
     graph.add_node(f"{tree.id()}result", image=f'_treedata/{tree.id()}.png', label="", imagescale=True, fixedsize=True, shape="plaintext", width=2, height=2)
+
+
+def draw_text(graph: pgv.AGraph, tree: Tree[Any], text: str) -> None:
+    """
+    Draw the given text to the graph.
+
+    Parameters
+    ----------
+    graph : pgv.AGraph
+        The graph to add a node to.
+    tree : Tree[image]
+        This is needed to get the id from
+    text : str
+        The text to draw to the graph
+    """
+
+    graph.add_node(f"{tree.id()}result", label=f"{text}", shape="plaintext")
+

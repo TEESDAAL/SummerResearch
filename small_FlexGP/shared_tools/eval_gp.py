@@ -5,7 +5,7 @@ from functools import partial
 from shared_tools.fitness_function import error
 
 def varAnd(population, toolbox, cxpb, mutpb):
-    """Part of an evolutionary algorithm applying only the variation part
+    r"""Part of an evolutionary algorithm applying only the variation part
     (crossover **and** mutation). The modified individuals have their
     fitness invalidated. The individuals are cloned so returned population is
     independent of the input population.
@@ -62,7 +62,7 @@ def varAnd(population, toolbox, cxpb, mutpb):
 
 def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
              halloffame=None, verbose=__debug__):
-    """This algorithm reproduce the simplest evolutionary algorithm as
+    r"""This algorithm reproduce the simplest evolutionary algorithm as
     presented in chapter 7 of [Back2000]_.
 
     :param population: A list of individuals.
@@ -109,9 +109,6 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
     """
     logbook = tools.Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
-    # Evaluate the individuals with an invalid fitness
-    #invalid_ind = [ind for ind in population if not ind.fitness.valid]
-    #print(len(invalid_ind))
 
 
     fitnesses = toolbox.map(toolbox.evaluate, population)
@@ -137,7 +134,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
         hof2 = evalValidation(offspring_for_va, toolbox, hof2)
 
         #Select the next generation individuals by elitism
-        elitismNum=int(elitpb * len(population))
+        elitismNum = int(elitpb * len(population))
         population_for_eli=[toolbox.clone(ind) for ind in population]
         offspringE = toolbox.selectElitism(population_for_eli, k=elitismNum)
 
@@ -173,7 +170,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
 
 
 def evalValidation(offspring_for_va,toolbox,hof2):
-    fitnesses2 = toolbox.map(toolbox.validation, [toolbox.clone(o) for o in offspring_for_va])
+    fitnesses2 = [toolbox.validation(o) for o in offspring_for_va]
     for ind2, fit2 in zip(offspring_for_va, fitnesses2):
         ind2.fitness.values = fit2
         # Update the hall of fame with the generated individuals
