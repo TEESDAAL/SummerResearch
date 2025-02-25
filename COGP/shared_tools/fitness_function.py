@@ -51,12 +51,12 @@ def train_then_test_model(train_test_indicies, xs, ys) -> float:
     return error(predictor.predict(X_test), y_test)
 
 
-def model():
+def model(**kwargs):
     return make_pipeline(
         MinMaxScaler(),
         #PCA(n_components=10),
         #LinearRegression()
-        RandomForestRegressor(random_state=0)
+        RandomForestRegressor(random_state=0, **kwargs)
         #MultiOutputRegressor(LinearSVR(random_state=0))
         #DecisionTreeRegressor(random_state=0, max_depth=7)
     )

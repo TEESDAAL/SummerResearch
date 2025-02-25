@@ -124,7 +124,7 @@ def eaSimple(population, toolbox, cxpb, mutpb, elitpb, ngen, stats=None,
         print(logbook.stream)
 
     hof2 = tools.HallOfFame(3)
-    offspring_for_va = toolbox.selectElitism(population, k=1)
+    offspring_for_va = [toolbox.clone(o) for o in toolbox.selectElitism(population, k=1)]
     hof2 = evalValidation(offspring_for_va, toolbox, hof2)
 
     for gen in range(1, ngen + 1):
