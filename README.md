@@ -2,35 +2,28 @@
 This is a repository for all my summer research related things.
 
 ## Running the models
-Running the models is now done through `model_selector.py` in the `refactor` directory. You can run a specific model in the following ways:
-1. ```python -m scoop model_seletor.py MODEL [parameters]``` - Run the model using scoop for parallelism.
-2. ```python model_seletor.py MODEL [parameters] --no-scoop``` - Run the model using the regular multithreading library for parrallelism.
-3. ```python model_seletor.py MODEL [parameters]``` -  Run the model without any parrallelism
+All of the models *should* follow the same process to run them. Once you've `cd`ed into a specific folder it can be run in the following ways:
+```sh
+python main.py
+```
+to run with the default testing parameters (usually a population size and number of generations of 2, these can be customized with the `-p` and `-g` commands respectively).
 
+To see the full set of customization options run 
+```sh
+python main.py --help
+```
 
-For more details you can run `python model_selector --help`
+Also you can run without multithreading by telling it to use scoop without running it using scoop
+```sh
+python main.py --use-scoop
+```
 
-## Example
-Eg:
+## Approaches
+### MLGP
+One of the simplest approaches, just getting the std of the pixels of a transformed image. Because of this simplicity the model results weren't very good, especially with the limitations of std being only positive caused this model to perform quite poorly with respect to this task. A very brief attempt to address this problem was attempted in [test_MLGP](https://github.com/TEESDAAL/SummerResearch/tree/main/test_MLGP) (by simply sifting the output of the std function by the average std of the images, then scaling the output so it was in the range (1, -1). This made a very minimal difference to overall performance. 
 
-`python model_selector.py complex_pred -g 2 -p 10` - Run the complex_pred model, trained for 2 generations with a population size of 10.
-## Explanation of the models
-### "Seperate" MLGP Model
-Run via `python -m scoop model_selector.py MLGP`
-The simpliest model. Goes through the learning process twice. Once to produce a tree that predicts the valence, and once to produce the values for the arousal.
-These trees are then simply combined.
+#### Results
+https://github.com/TEESDAAL/SummerResearch/blob/main/MLGP/data_visualisation.ipynb
+Test Error ± 1 std: 0.5209 ± 0.0020
 
-### "Simple" MLGP Model (`simple_pred` directory):
-Run via `python -m scoop model_selector.py MLGP`
-A reasonably simple model. Unline the previous model, the whole tree is trained together in one run. And the error of each model is given by the euclidean distance between the prediction and the true value.
-
-### Complex Number Model (`complex_num_pred` directory):
-Run via `python -m scoop complex_number_pred.py MLGP`
-Very much like the previous model but the outputs are in the form of complex numbers (a+bi) instead of a tuple. The program also has a small "regression" layer where the output can be scaled or rotated (by multiplying the output by a complex number).
-
-### Complex Regression MLGP mode (`complex_pred` directory):
-Run via `python -m scoop complex_pred.py MLGP`
-Adds a regression layer on top after the prediction. Allows for the intermediate values predicted by the previous layers to be recombined in a bunch of different ways.
-
-Assuming the lower layers produce some intermediate value (x, y). The regression layer allows for these to be combined in a more complex fashion. Eg. (x^2+y, sin(x)*y)
-
+### IDGP
