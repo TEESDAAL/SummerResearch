@@ -24,6 +24,7 @@ One of the simplest approaches, just getting the std of the pixels of a transfor
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/MLGP/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.5209 ± 0.0020
 
 ### IDGP
@@ -31,6 +32,7 @@ A feature extraction approach that works by selecting and then transforming a gi
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/IDGP_related_stuff/idgp_tree/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.4381 ± 0.0049
 
 ### FlexGP
@@ -41,6 +43,7 @@ This model had a significant overfitting problem.
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/FlexGP/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.4526 ± 0.0044
 
 ### COGP
@@ -48,6 +51,7 @@ A feature extraction model that aims to learn convolution and pooling operators 
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/COGP/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.47337 ± 0.0067
 
 ### Ensemble Methods
@@ -57,10 +61,21 @@ Many different ensemble methods were attempted in this project.
 2. SkLearn model overfitting. This approach aimed to combine the votes of more powerful learners to get the final prediction.
   - This model was unable to run, as the memory usage when breeding skyrocketed causing the program to crash for some reason. This is still worth investigating if the memory issue can be solved.
 
+### Automatic Region Detection.
+An attempt at using clustering for automatic region detection. I think this approach is very interesting and worth investigating further. The basic idea is that it uses a series of image transformations to increase the values of important regions, then by we convert the transformed image into a bitmap of pixels above some learned threashold value.
+
+For this examples I invented? which I will call *sliding window clustering* (May already be a technique that exists, I'm just not aware of it). That starts with a guess for the size of the cluster and so creates a window of a given (w x h). It then slides this window across the image, keeping track of how many points fall inside that that window. Then it returns the x, y location of the window that captured the most points.
+
+This however has no idea of centering, ideally the cluster would be placed in the center of the of the window, to achieve this I weighted the window using a 2D gaussian, so that points in the center of the window would be weighted higher. You could extend this technique to different filters/weights applied to each cell of this window to look for different cluster shapes.
+
+Example of the threashold idea can be seen here:
+https://github.com/TEESDAAL/SummerResearch/blob/main/region_detection/visualizer.ipynb
+
+
 ## Future Work
 - Investigate the massive overfitting problem with FlexGP & COGP. Some very naive feature reduction approaches were attempted here (PCA and reducing images), and trying different models. But reducing this issue could potentially dramatically improve results.
 - Try and solve the memory issues with ensemble methods.
-
+- Further experimenting with the automatic region-detection could be interesting
 
 ### Issues with this research
 - One potential issue with this work is that the validation error could "bleed over". This is because the function that adds a model to the validation hall of fame reassigns it's fitness value to it's validation erorr, and doesn't clone the individual. This can be fixed by either making sure to clone all the models before they're passed into the function. Or for the "evalValidation" function to clone the models passed into them.
@@ -82,16 +97,6 @@ def evalValidation(offspring_for_va, toolbox, validation_hof):
 
 - Deserializing runs proved to be very tricky only seems to be able to deserialize on the "enviroment" it was run on. In future make sure to set up a standard virtual enviroment, which might fix things?
 
-
-### Automatic Region Detection.
-An attempt at using clustering for automatic region detection. I think this approach is very interesting and worth investigating further. The basic idea is that it uses a series of image transformations to increase the values of important regions, then by we convert the transformed image into a bitmap of pixels above some learned threashold value.
-
-For this examples I invented? which I will call *sliding window clustering* (May already be a technique that exists, I'm just not aware of it). That starts with a guess for the size of the cluster and so creates a window of a given (w x h). It then slides this window across the image, keeping track of how many points fall inside that that window. Then it returns the x, y location of the window that captured the most points.
-
-This however has no idea of centering, ideally the cluster would be placed in the center of the of the window, to achieve this I weighted the window using a 2D gaussian, so that points in the center of the window would be weighted higher. You could extend this technique to different filters/weights applied to each cell of this window to look for different cluster shapes.
-
-Example of the threashold idea can be seen here:
-https://github.com/TEESDAAL/SummerResearch/blob/main/region_detection/visualizer.ipynb
 
 # Notes for future runs:
 - Everything that gets passed into a function that gets run across multiple processes needs to be "pickleable", this causes problems with passing the toolbox around, e.g. using the toolbox.compile function for the evaluation of a function. This can be solved by passing in the function `toolbox.compile` into the function then calling that.
