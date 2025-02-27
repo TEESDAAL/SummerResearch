@@ -42,9 +42,13 @@ class FilteredImg:
 class Weight:
     pass
 
+class WindowSize:
+    pass
+
 point = tuple[float, float]
 scorer = Callable[[list[point]], float]
 image = npt.NDArray[np.floating]
+filtered_image = npt.NDArray[np.bool]
 region = tuple[int, int, int, int]
 vector = npt.NDArray[np.floating]
 

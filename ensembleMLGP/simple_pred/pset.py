@@ -20,7 +20,7 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset.addPrimitive(combine, [float, float], Prediction, name="combine")
     pset.addPrimitive(partial(operator.mul, -1), [float], float, name="negate")
 
-    feature_construction_layer = [np.std, np.mean]
+    feature_construction_layer = [np.std, np.mean, funky_std]
     for func in feature_construction_layer:
         pset.addPrimitive(func, [Region], float, name=func.__name__)
 
@@ -55,3 +55,8 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset.renameArguments(ARG0='Image')
 
     return pset
+
+def funky_std(img):
+    avg_std  = 0.20737
+    to_range = 5.00990
+    return (np.std(img) - avg_std) * to_range

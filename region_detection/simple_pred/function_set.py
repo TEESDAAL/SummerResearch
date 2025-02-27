@@ -4,8 +4,8 @@ import numpy as np
 from deap import gp
 from shared_tools.fitness_function import Landmarks
 from simple_pred.data_types import (
-    image, region, Size, Regions, Img, Padding, NumClusters,
-    SmallPadding, Scorer, LowerBound, FilteredImg, Weight
+    image, filtered_image, region, Size, Regions, Img, Padding, NumClusters,
+    SmallPadding, Scorer, LowerBound, FilteredImg, Weight, WindowSize
 )
 
 from scipy import ndimage
@@ -94,14 +94,14 @@ def square_region(img_region: image, x: int, y: int, window_size: int) -> image:
     return img_region[x:x_end, y:y_end]
 
 
-def rect_region(img_region: image, x: int, y: int, width: int, height: int) -> image:
+def rect_region(img_region: image | filtered_image, x: int, y: int, width: int, height: int) -> image | filtered_image:
     w, h = img_region.shape
     x_end = min(w, x + width)
     y_end = min(h, y + height)
     return img_region[y:y_end, x:x_end]
 
 
-def centroid_clustering_to_region(image: image, number_clusters: int, x_pad: int, y_pad: int, clustering_method) -> list[region]:
+def centroid_clustering_to_region(image: filtered_image, number_clusters: int, x_pad: int, y_pad: int, clustering_method) -> list[region]:
     if number_clusters == 0:
         return []
 
@@ -127,7 +127,7 @@ def centroid_clustering_to_region(image: image, number_clusters: int, x_pad: int
     return list(sorted(regions, key=lambda region: region[0] + region[2]/2))
 
 
-def density_clustering_to_region(image: image, number_clusters: int, x_pad: int, y_pad: int, clustering_method) -> list[region]:
+def density_clustering_to_region(image: filtered_image, number_clusters: int, x_pad: int, y_pad: int, clustering_method) -> list[region]:
     if number_clusters == 0:
         return []
 
@@ -176,9 +176,43 @@ def scorer(rect_area: float, hull_area: float, linearness: float, cov_weight: fl
     ] if w != 0)
 
 
-def threashold(img: image, lower_bound) -> image:
-    return np.vectorize(lambda b: 1.0 if b > lower_bound else 0.0)(img)
+def moving_window_cluster(image: filtered_image, *dimensions: tuple[int, int]) -> list[region]:
+    mutable_image = image.copy()
 
+    return [densist_region(mutable_image, width, height) for width, height in dimensions]
+
+def densist_region(image: filtered_image, window_width: int, window_height: int) -> region:
+    image_width, image_height = image.shape
+    best_x, best_y, highest_density = 0, 0, 0
+
+    gaussian_for_centering = make_filter(window_width, window_height)
+    for x in range(image_width - window_width):
+        for y in range(image_height - window_height):
+            captured_pixels = (rect_region(image, x, y, window_width, window_height) * gaussian_for_centering).sum()
+            if captured_pixels > highest_density:
+                highest_density = captured_pixels
+                best_x, best_y = x, y
+    # make it so the best region is "used up" so it won't be chosen again
+    rect_region(image, best_x, best_y, window_width, window_height)[:] = 0
+    return (best_x, best_y, window_width, window_height)
+
+
+def make_filter(width: int, height: int) -> np.ndarray:
+    center_x, center_y = width // 2, height // 2
+    x_scale, y_scale = 1 / width, 1 / height
+    return np.array([
+        [np.exp(-x_scale*(x - center_x)**2 - y_scale*(y - center_y)**2) for x in range(width)]
+        for y in range(height)
+    ])
+
+
+def threashold(img: image, lower_bound: float) -> filtered_image:
+    return img > lower_bound
+
+def fancy_threashold(img: image, threashold: float) -> image:
+    flat_array = np.sort(img.flatten())
+    index = int(threashold * (len(flat_array)-1))
+    return img > (flat_array[index])
 
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     pset = gp.PrimitiveSetTyped('MAIN', [Img], Regions)
@@ -192,32 +226,39 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
         (hist_equal, 'Hist_Eq'), (gaussian_1, 'Gau1'), (gaussian_11, 'Gau11'),
         (gauGM, 'GauXY'), (laplace, 'Lap'), (sobel_x, 'Sobel_X'),
         (sobel_y, 'Sobel_Y'), (gaussian_Laplace1, 'LoG1'),
-        (gaussian_Laplace2, 'LoG2'), (abs, 'abs')
+        (gaussian_Laplace2, 'LoG2'), (abs, 'abs'), (custom_edge_detection, 'custom_edge')
     ]
 
     for func, name in image_processing_layer:
         pset.addPrimitive(func, [Img], Img, name=name)
 
     pset.addPrimitive(threashold, [Img, LowerBound], FilteredImg)
-    pset.addEphemeralConstant('lower_bound', random.random, LowerBound)
+    pset.addPrimitive(fancy_threashold, [Img, LowerBound], FilteredImg)
 
     centroid_clustering = [KMeans, Birch]
     # image: image, number_clusters: int, x_pad: int, y_pad: int, clustering_method
-    for clustering_method in centroid_clustering:
-        pset.addPrimitive(
-            partial(centroid_clustering_to_region, clustering_method=clustering_method),
-            [FilteredImg, NumClusters, Padding, Padding], Regions,
-            name=f'{clustering_method.__name__}'
-        )
+    # for clustering_method in centroid_clustering:
+    #     pset.addPrimitive(
+    #         partial(centroid_clustering_to_region, clustering_method=clustering_method),
+    #         [FilteredImg, NumClusters, Padding, Padding], Regions,
+    #         name=f'{clustering_method.__name__}'
+    #     )
+    #
+    # density_clustering = [AgglomerativeClustering]
+    # for clustering_method in density_clustering:
+    #     pset.addPrimitive(
+    #         partial(density_clustering_to_region, clustering_method=clustering_method),
+    #         [FilteredImg, NumClusters, SmallPadding, SmallPadding], Regions,
+    #         name=f'{clustering_method.__name__}'
+    #     )
+    #
+    pset.addPrimitive(
+        moving_window_cluster, [FilteredImg, WindowSize, WindowSize, WindowSize], Regions
+    )
 
-    density_clustering = [AgglomerativeClustering]
-    for clustering_method in density_clustering:
-        pset.addPrimitive(
-            partial(density_clustering_to_region, clustering_method=clustering_method),
-            [FilteredImg, NumClusters, SmallPadding, SmallPadding], Regions,
-            name=f'{clustering_method.__name__}'
-        )
 
+    pset.addEphemeralConstant('lower_bound', gen_lower_bound, LowerBound)
+    pset.addEphemeralConstant('window_size', partial(gen_window_size, image_width, image_height), WindowSize)
     #pset.addPrimitive(gen_scorer, [Weight]*4, Scorer, name="scorer")
 
     pset.addEphemeralConstant('s_padding', partial(random.randint, -5, 5), SmallPadding)
@@ -234,8 +275,19 @@ def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
     return pset
 
 
+def gen_lower_bound() -> float:
+    return round(random.random(), 2)
+
+def custom_edge_detection(image: image) -> image:
+    return rescale(abs(sobel_x(image)) - abs(sobel_y(image)))
+
 def gen_weight() -> float:
     return float(random.choice(np.arange(-2, 2.1, 0.5)))
 
 def gen_scorer(*args) -> Callable:
     return partial(scorer, *args)
+
+def gen_window_size(image_width, image_height) -> tuple[int, int]:
+    return random.randint(image_width // 10, image_width // 2), random.randint(image_height // 10, image_height // 2)
+
+

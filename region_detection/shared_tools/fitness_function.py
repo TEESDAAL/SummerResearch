@@ -35,10 +35,10 @@ def extract_regions(image, individual, compiler) -> list[Region]:
 def error(regions_points) -> float:
     regions, points = regions_points
     captured_points = sum(int(inside_regions(p, regions)) for p in points)
-    area = sum(region[2] * region[3] for region in regions)
-    if area == 0:
+    total_area = sum(w * h for x, y, w, h in regions)
+    if total_area == 0:
         return 0
-    return captured_points / (len(points) * np.sqrt(area))
+    return captured_points / (len(points) * np.sqrt(total_area))
 
 
 def inside_regions(point: Point, regions: list[Region]) -> bool:
