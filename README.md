@@ -83,6 +83,16 @@ def evalValidation(offspring_for_va, toolbox, validation_hof):
 - Deserializing runs proved to be very tricky only seems to be able to deserialize on the "enviroment" it was run on. In future make sure to set up a standard virtual enviroment, which might fix things?
 
 
+### Automatic Region Detection.
+An attempt at using clustering for automatic region detection. I think this approach is very interesting and worth investigating further. The basic idea is that it uses a series of image transformations to increase the values of important regions, then by we convert the transformed image into a bitmap of pixels above some learned threashold value.
+
+For this examples I invented? which I will call *sliding window clustering* (May already be a technique that exists, I'm just not aware of it). That starts with a guess for the size of the cluster and so creates a window of a given (w x h). It then slides this window across the image, keeping track of how many points fall inside that that window. Then it returns the x, y location of the window that captured the most points.
+
+This however has no idea of centering, ideally the cluster would be placed in the center of the of the window, to achieve this I weighted the window using a 2D gaussian, so that points in the center of the window would be weighted higher. You could extend this technique to different filters/weights applied to each cell of this window to look for different cluster shapes.
+
+Example of the threashold idea can be seen here:
+https://github.com/TEESDAAL/SummerResearch/blob/main/region_detection/visualizer.ipynb
+
 # Notes for future runs:
 - Everything that gets passed into a function that gets run across multiple processes needs to be "pickleable", this causes problems with passing the toolbox around, e.g. using the toolbox.compile function for the evaluation of a function. This can be solved by passing in the function `toolbox.compile` into the function then calling that.
 - In practice I found that there was performance improvements if I didn't run the model evaluations in parallel, but ran parts of evaluation process in parallel, e.g. the image processing. To achieve this I added a `parallel_map` that used the multiprocessing `Pool().map` function (as the regular `toolbox.map` function is used by the library code).
