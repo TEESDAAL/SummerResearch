@@ -24,6 +24,7 @@ One of the simplest approaches, just getting the std of the pixels of a transfor
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/MLGP/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.5209 ± 0.0020
 
 ### IDGP
@@ -31,6 +32,7 @@ A feature extraction approach that works by selecting and then transforming a gi
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/IDGP_related_stuff/idgp_tree/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.4381 ± 0.0049
 
 ### FlexGP
@@ -41,6 +43,7 @@ This model had a significant overfitting problem.
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/FlexGP/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.4526 ± 0.0044
 
 ### COGP
@@ -48,6 +51,7 @@ A feature extraction model that aims to learn convolution and pooling operators 
 
 #### Results
 https://github.com/TEESDAAL/SummerResearch/blob/main/COGP/data_visualisation.ipynb
+
 Test Error ± 1 std: 0.47337 ± 0.0067
 
 ### Ensemble Methods
