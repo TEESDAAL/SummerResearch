@@ -2,6 +2,8 @@ import argparse, random, numpy as np
 from run_gp import main
 import shared_tools.parameters as params
 
+# Configure the commandline arguments to allow customisation of the various parameters.
+
 parser = argparse.ArgumentParser(
                     prog='Model selector',
                     description='Acts as an interface to choose the model selector')

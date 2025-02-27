@@ -11,12 +11,26 @@ from simple_pred.data_types import Img, X, Y, Size, Region, Prediction
 
 
 def create_pset(image_width: int, image_height: int) -> gp.PrimitiveSetTyped:
+    """
+    Create a new pset for the MLGP model
+
+    Parameters
+    ----------
+    image_width : int
+        The width of the images this model will get fed
+    image_height : int
+        The height of the images this model will get fed
+    Returns
+    -------
+    deap.gp.PrimitiveSetTyped
+        A primative set for deap to use to construct MLGP trees
+    """
     pset = gp.PrimitiveSetTyped('MAIN', [Img], Prediction)
 
     # Concatination layer
     pset.addPrimitive(combine, [float, float], Prediction, name="combine")
 
-
+    # Feature extraction layer
     feature_construction_layer = [np.std, np.mean, np.min, np.max]
     for func in feature_construction_layer:
         pset.addPrimitive(func, [Region], float, name=func.__name__)

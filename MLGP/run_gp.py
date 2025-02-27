@@ -15,6 +15,7 @@ def run_gp(parameters, toolbox):
 
     hof = tools.HallOfFame(1)
 
+    # Make a stats object that tracks the min, max, mean, and std of the fitness and the size of the population
     stats = tools.Statistics()
     metrics = [np.min, np.max, np.mean, np.std]
     values_to_track = [(lambda ind: ind.fitness.values, "fit"), (len, "size")]
@@ -22,6 +23,7 @@ def run_gp(parameters, toolbox):
     for (key, name), metric in product(values_to_track, metrics):
         stats.register(f"{name}_{metric.__name__}", add_stat_tracker(metric, key))
 
+    # Also track the validation score of the best models
     stats.register(
         "val_min",
         lambda population: float(toolbox.validation(min(population, key=lambda p: p.fitness.values[0]))[0])
