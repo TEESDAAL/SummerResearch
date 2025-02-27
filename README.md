@@ -78,7 +78,7 @@ https://github.com/TEESDAAL/SummerResearch/blob/main/region_detection/visualizer
 - Further experimenting with the automatic region-detection could be interesting
 
 ### Issues with this research
-- One potential issue with this work is that the validation error could "bleed over". This is because the function that adds a model to the validation hall of fame reassigns it's fitness value to it's validation erorr, and doesn't clone the individual. This can be fixed by either making sure to clone all the models before they're passed into the function. Or for the "evalValidation" function to clone the models passed into them.
+- One potential issue with this work is that the validation error could "bleed over". This is because the function that adds a model to the validation hall of fame reassigns it's fitness value to it's validation error, and doesn't clone the individual. This can be fixed by either making sure to clone all the models before they're passed into the function. Or for the "evalValidation" function to clone the models passed into them.
 
 ```python
 def evalValidation(offspring_for_va, toolbox, validation_hof):
